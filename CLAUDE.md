@@ -76,6 +76,7 @@ If context is missing, a requirement is ambiguous, or an instruction seems wrong
 - Errors: throw domain errors; one global filter maps them to RFC 7807 Problem Details. No try/catch in handlers.
 - Money: `NUMERIC(12,2)` in Postgres, `Decimal` (decimal.js) in code, serialized as strings. Never JS `number` for money.
 - Payroll rules (brackets, insurance rate, cap) come from validated config, never hard-coded.
+- Web styling: theme tokens only (no raw colors/sizes/spacing), mobile first, flexbox + `gap`, no fixed container sizes; reuse `shared/ui` primitives.
 - Authorization is enforced on the server (roles guard); hiding UI is only UX.
 
 ## Git

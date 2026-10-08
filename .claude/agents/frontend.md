@@ -31,6 +31,13 @@ Do not modify already-implemented UI without permission. State the file, the cha
 - **Keep components small.** If one grows past ~200 lines, split it.
 - **Explicit conditionals**: `count > 0 ? <X /> : null`, not `count && <X />`.
 
+## Design System & Layout
+
+- **Theme tokens only.** Colors, font sizes, font weights, line heights, spacing, radii, shadows and breakpoints come from the theme (`apps/web/src/shared/theme/`, CSS custom properties). No raw hex, `px` font sizes or magic spacing numbers in feature styles. Missing token? Add it to the theme, don't inline it.
+- **Reuse `shared/ui` primitives** (Button, TextInput, SelectInput, Toast, Skeleton, Card, Avatar, …) before writing markup. A new primitive goes in `shared/ui`, not in a feature.
+- **Mobile first.** Base styles target the smallest screen; widen with `min-width` media queries via the breakpoint mixin. Never `max-width` overrides of a desktop layout.
+- **Flexbox layout with internal spacing.** Lay out with `display: flex` + `gap`, and size with padding from the spacing scale. No fixed `height`/`width` on containers; let content and flex define size. Allowed exceptions: intrinsic media (Avatar diameter, icons) using size tokens, and `max-width` on readable content.
+
 ## Data Fetching (TanStack Query)
 
 Every data view handles **loading, error, empty, success**. Every mutation invalidates the affected query keys.
@@ -94,6 +101,6 @@ function EmployeeList({ params }: Props) {
 
 ## Before Building
 
-1. Check `shared/` and the feature for an existing primitive or hook.
+1. Check `shared/ui`, `shared/theme` and the feature for an existing primitive, token or hook.
 2. Check the spec in `specs/<feature>/spec.md`.
 3. Test-first with Vitest; run `pnpm --filter web test` and `pnpm --filter web typecheck` (if the script exists) before reporting done.
