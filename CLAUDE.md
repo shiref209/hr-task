@@ -19,11 +19,15 @@ Any new dependency: ask first, and justify it in the README. No library for some
 
 ## Structure — feature-based everywhere
 ```
-apps/api/src/<feature>/
-  domain/          pure TS: entities, rules, calculators, repository interfaces. No Nest, Prisma or HTTP imports.
-  application/     use-case services; depend on domain interfaces via DI tokens
-  infrastructure/  Prisma repositories, external adapters
-  presentation/    controllers, request/response mapping
+apps/api/src/<feature>/          standard flat Nest module + dependency inversion
+  <feature>.module.ts
+  <feature>.controller.ts          thin: parse input, call one service method, map result
+  <feature>.service.ts             use cases; depends on the repository interface via token, never Prisma
+  <feature>.repository.ts          repository interface + DI token
+  prisma-<feature>.repository.ts   Prisma implementation; Prisma types never leak past it
+  <feature>.errors.ts              domain errors (plain classes, no Nest HttpException)
+  domain/                          only for real business rules (e.g. payroll calculator).
+                                   Pure TS: no Nest, Prisma or HTTP imports.
 apps/api/src/common/   cross-cutting only: ProblemDetails filter, Zod pipe, health
 apps/web/src/features/<feature>/
   api/             axios calls + TanStack Query hooks
@@ -47,7 +51,7 @@ Per package: `pnpm --filter api|web|types <script>`. Nest CLI is pinned to 11.0.
 3. **TDD** — use the `test-driven-development` skill. Red → green → refactor. Every confirmed edge case becomes a test. Unit tests never touch a real DB or network (use in-memory repository fakes).
 4. **Implement** — ponytail ladder: reuse what exists, stdlib/native first, shortest correct diff.
 5. **Verify** — run typecheck, lint and the full test suite; then review with the `code-review-and-quality` skill or the `change-intent-validator` agent.
-6. **Commit** — small, meaningful commits (Conventional Commits). History is graded.
+6. **Commit** — only when the user asks or approves (see Git rules). Small, meaningful Conventional Commits. History is graded.
 
 If context is missing, a requirement is ambiguous, or an instruction seems wrong: **stop and ask**. Do not guess.
 
@@ -66,13 +70,17 @@ If context is missing, a requirement is ambiguous, or an instruction seems wrong
 ## Code rules
 - TypeScript `strict`; no `any`, no non-null `!` to silence the compiler.
 - Names carry meaning; comments only for *why* clean code can't express (e.g. a rounding rule's rationale).
-- Business logic lives in `domain/` (API). Controllers and React components stay thin.
+- Business logic lives in services and pure `domain/` code (API). Controllers and React components stay thin.
 - DI everywhere; inject abstractions (interface + token), not Prisma directly into services.
 - Validation: shared Zod schemas, enforced by the API (never trust the client) and reused by the web form.
 - Errors: throw domain errors; one global filter maps them to RFC 7807 Problem Details. No try/catch in handlers.
 - Money: `NUMERIC(12,2)` in Postgres, `Decimal` (decimal.js) in code, serialized as strings. Never JS `number` for money.
 - Payroll rules (brackets, insurance rate, cap) come from validated config, never hard-coded.
 - Authorization is enforced on the server (roles guard); hiding UI is only UX.
+
+## Git
+- **Never commit or push unless the user explicitly asks or approves.** Propose the commit message(s) and wait.
+- Approval covers only the commit it was given for; ask again for the next one.
 
 ## Security
 Never commit secrets. Real values in gitignored `.env`; keep `.env.example` current.

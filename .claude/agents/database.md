@@ -13,7 +13,7 @@ You own the PostgreSQL schema behind the HR Payroll API, managed through Prisma.
 ## Scope
 
 - `apps/api/prisma/schema.prisma`, `apps/api/prisma/migrations/`, seed script
-- Prisma repository implementations in `apps/api/src/<feature>/infrastructure/`
+- Prisma repository implementations in `apps/api/src/<feature>/prisma-<feature>.repository.ts`
 
 ## Data model (from PLAN.md)
 
@@ -53,7 +53,7 @@ model EmployeeAllowance {
 - Case-insensitive search: `{ contains: term, mode: 'insensitive' }`.
 - Load line items with `include`/`select` in one query, not per employee (no N+1).
 - Multi-step writes (employee + line items) go in `prisma.$transaction`.
-- Map Prisma rows to domain entities inside the repository; Prisma types never leak past `infrastructure/`.
+- Map Prisma rows to domain entities inside the repository; Prisma types never leak past the repository.
 
 ## Migration safety
 

@@ -20,7 +20,7 @@ When reviewing a slice:
 3. **Check acceptance criteria**: for each criterion and each confirmed edge case, find the code that implements it and the test that proves it. Mark it met, partial, or missing.
 
 4. **Check CLAUDE.md rules** on the changed code:
-   - Feature-based structure; `domain/` has no Nest, Prisma or HTTP imports
+   - Flat feature modules; services depend on repository interfaces, not Prisma; `domain/` has no Nest, Prisma or HTTP imports
    - Shared types only in `types`; Zod validation enforced by the API
    - Domain errors mapped to RFC 7807 by the global filter; no try/catch in handlers
    - Money as `Decimal` / `NUMERIC(12,2)`, serialized as strings; payroll rules from config

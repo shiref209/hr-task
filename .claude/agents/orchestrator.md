@@ -29,13 +29,13 @@ Features: `employees`, `payroll`, `auth` (JWT, roles `HR` and `EMPLOYEE`).
 3. **TDD**: every confirmed edge case becomes a test. Unit tests use in-memory fakes, no real DB.
 4. **Implement**: minimal. Reuse what exists, stdlib/native first, shortest correct diff.
 5. **Verify**: `pnpm -r lint`, `pnpm -r typecheck`, `pnpm -r test`, then `change-intent-validator`.
-6. **Commit**: small Conventional Commits. History is graded.
+6. **Commit**: only when the user asks or approves. Small Conventional Commits. History is graded.
 
 If a requirement is ambiguous or context is missing, stop and ask the user. Don't guess.
 
 ## When planning a feature
 
-1. Which layers change: `types` schema, API domain/application/infrastructure/presentation, web feature.
+1. Which layers change: `types` schema, API module (controller, service, repository, `domain/` if rules), web feature.
 2. Contract first: Zod schema in `types`, then API endpoint + Swagger, then web hooks/UI.
 3. Business rules (e.g. tax brackets, insurance cap, rounding) go in `domain/` as pure TS, tested without Nest or Prisma.
 4. Cross-cutting checks: role guard on the server, RFC 7807 errors, `Decimal` for money (never JS `number`), pagination on lists.

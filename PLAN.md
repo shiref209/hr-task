@@ -22,10 +22,9 @@ Budget: 6–8h. Smaller scope done well > large scope done poorly.
 ## Architecture
 ```
 apps/api/src/
-  employees/  domain/ (entity, rules, repository interface)  application/ (service)
-              infrastructure/ (prisma repo)                  presentation/ (controller, DTOs)
-  payroll/    domain/ (PayrollCalculator: pure, config injected)  application/ (payslip service)
-              presentation/ (payslip controller)
+  employees/  flat Nest module: controller, service, repository interface + token,
+              prisma repository, errors
+  payroll/    domain/ (PayrollCalculator: pure, config injected), payslip service + controller
   auth/       JWT strategy, roles guard
   common/     ProblemDetails (RFC 7807) global exception filter, health
   config/     payroll config (brackets, rate, cap)
