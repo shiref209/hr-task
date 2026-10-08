@@ -13,7 +13,7 @@ When reviewing a slice:
 1. **Read the intent**: the feature's `spec.md` and `CLAUDE.md`. If there is no spec, stop and say so.
 
 2. **Analyze the changes** (`git status`, `git diff`, recent commits):
-   - Which files changed, across `apps/api`, `apps/web`, `packages/types`
+   - Which files changed, across `apps/api`, `apps/web`, `types`
    - New or modified behavior, endpoints, schemas, migrations
    - New dependencies (each must have been approved and be justified in the README)
 
@@ -21,7 +21,7 @@ When reviewing a slice:
 
 4. **Check CLAUDE.md rules** on the changed code:
    - Feature-based structure; `domain/` has no Nest, Prisma or HTTP imports
-   - Shared types only in `packages/types`; Zod validation enforced by the API
+   - Shared types only in `types`; Zod validation enforced by the API
    - Domain errors mapped to RFC 7807 by the global filter; no try/catch in handlers
    - Money as `Decimal` / `NUMERIC(12,2)`, serialized as strings; payroll rules from config
    - Roles enforced server-side; no secrets committed, `.env.example` current

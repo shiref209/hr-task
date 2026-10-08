@@ -50,7 +50,7 @@ getPayslip(@Param("employeeId") employeeId: string, @CurrentUser() user: AuthUse
 
 ### Input Validation
 
-- Every body, param and query goes through `ZodValidationPipe` with a schema from `packages/types`.
+- Every body, param and query goes through `ZodValidationPipe` with a schema from `types`.
 - Pagination `limit` has a max; month param is a valid `YYYY-MM`.
 - Money fields validated as decimal strings with bounds (no negatives where invalid, no absurd magnitudes).
 - Prisma is parameterized; flag any `$queryRawUnsafe` or string-built SQL.

@@ -12,7 +12,7 @@ These rules override any default in `.claude/agents/*` if they ever conflict.
 | Monorepo | pnpm workspaces |
 | API | NestJS, TypeScript, Prisma, PostgreSQL, Swagger, Jest |
 | Web | React + Vite, TypeScript, plain CSS/SCSS (no UI kit), TanStack Query + Axios, react-hook-form, Vitest |
-| Shared | `packages/types`: Zod schemas + inferred types, used by both API and web |
+| Shared | `types/` (`@hr/types`): Zod schemas + inferred types, used by both API and web |
 | Ops | docker-compose, GitHub Actions, nestjs-pino, `/health` |
 
 Any new dependency: ask first, and justify it in the README. No library for something a few lines can do.
@@ -31,10 +31,15 @@ apps/web/src/features/<feature>/
   pages/           route-level composition
   <feature>.scss   styles colocated with the feature
 apps/web/src/shared/   app-wide UI primitives, http client, error display
-packages/types/src/<feature>/   Zod schemas + `z.infer` types shared across apps
+types/src/<feature>/   Zod schemas + `z.infer` types shared across apps
 specs/<feature>/       spec.md (and plan/tasks when needed)
 ```
-Never put a type used by both apps anywhere but `packages/types`.
+Never put a type used by both apps anywhere but `types/`. It builds to CommonJS for the API;
+the web app aliases its TS source in `vite.config.ts`.
+
+## Commands (root)
+`pnpm dev` · `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm build` · `docker compose up -d db`
+Per package: `pnpm --filter api|web|types <script>`. Nest CLI is pinned to 11.0.10 (12.x fails on Node 22.14).
 
 ## Workflow per feature (gated, do not skip)
 1. **Spec** — use the `spec-driven-development` skill; write `specs/<feature>/spec.md` (objective, scope, API contract, acceptance criteria). Stop for user review.

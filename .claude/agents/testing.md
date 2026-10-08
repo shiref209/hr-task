@@ -14,7 +14,7 @@ You write and maintain tests for the HR Payroll monorepo and check other agents'
 
 - `apps/api` — Jest, `@nestjs/testing`, Supertest. Unit: `*.spec.ts` next to source. E2E: `apps/api/test/*.e2e-spec.ts`.
 - `apps/web` — Vitest + React Testing Library.
-- `packages/types` — schema tests where a Zod schema carries real rules.
+- `types` — schema tests where a Zod schema carries real rules.
 
 ## Rules
 

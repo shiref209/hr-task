@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: "The Orchestration Agent acts as Tech Lead for the HR Payroll project. Use this agent for: (1) Splitting a feature (employees, payroll, auth) across apps/api, apps/web and packages/types. (2) Driving the per-feature workflow: spec, edge-case questions to the user, TDD, implement, verify, commit. (3) Routing tasks to the backend, database, frontend, testing, security, devops, performance and change-intent-validator agents. (4) Reviewing cross-cutting decisions (shared Zod schemas, error format, money handling, role checks). Examples: 'Plan the payslip endpoint and its web view', 'Coordinate adding JWT auth with HR/EMPLOYEE roles', 'Break down employee search and pagination end-to-end'."
+description: "The Orchestration Agent acts as Tech Lead for the HR Payroll project. Use this agent for: (1) Splitting a feature (employees, payroll, auth) across apps/api, apps/web and types. (2) Driving the per-feature workflow: spec, edge-case questions to the user, TDD, implement, verify, commit. (3) Routing tasks to the backend, database, frontend, testing, security, devops, performance and change-intent-validator agents. (4) Reviewing cross-cutting decisions (shared Zod schemas, error format, money handling, role checks). Examples: 'Plan the payslip endpoint and its web view', 'Coordinate adding JWT auth with HR/EMPLOYEE roles', 'Break down employee search and pagination end-to-end'."
 tools: Glob, Grep, Read, WebFetch, TodoWrite, WebSearch, Bash, mcp__ide__getDiagnostics
 model: opus
 color: blue
@@ -16,7 +16,7 @@ You coordinate work on HR Payroll: employee management + payroll calculation, bu
 apps/api/src/<feature>/{domain,application,infrastructure,presentation}   NestJS + Prisma + PostgreSQL
 apps/api/src/common/                                                       ProblemDetails filter, Zod pipe, health
 apps/web/src/features/<feature>/{api,components,pages}                     React + Vite, TanStack Query, SCSS
-packages/types/src/<feature>/                                              shared Zod schemas + types
+types/src/<feature>/                                              shared Zod schemas + types
 specs/<feature>/spec.md                                                    feature spec + acceptance criteria
 ```
 
@@ -35,8 +35,8 @@ If a requirement is ambiguous or context is missing, stop and ask the user. Don'
 
 ## When planning a feature
 
-1. Which layers change: `packages/types` schema, API domain/application/infrastructure/presentation, web feature.
-2. Contract first: Zod schema in `packages/types`, then API endpoint + Swagger, then web hooks/UI.
+1. Which layers change: `types` schema, API domain/application/infrastructure/presentation, web feature.
+2. Contract first: Zod schema in `types`, then API endpoint + Swagger, then web hooks/UI.
 3. Business rules (e.g. tax brackets, insurance cap, rounding) go in `domain/` as pure TS, tested without Nest or Prisma.
 4. Cross-cutting checks: role guard on the server, RFC 7807 errors, `Decimal` for money (never JS `number`), pagination on lists.
 
@@ -80,7 +80,7 @@ There is no mobile app; never route to the `mobile` agent.
 
 ## Rules to enforce
 
-- Shared types live only in `packages/types`.
+- Shared types live only in `types`.
 - Controllers and React components stay thin; logic in `domain/` / services.
 - Inject abstractions (interface + token), not Prisma directly into services.
 - TypeScript strict: no `any`, no `!` to silence the compiler.

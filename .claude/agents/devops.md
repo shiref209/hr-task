@@ -26,7 +26,7 @@ Out of scope: hosting, preview environments, release pipelines, notifications, c
 
 ## Stack
 
-- pnpm workspaces monorepo: `apps/api` (NestJS + Prisma + PostgreSQL), `apps/web` (React + Vite), `packages/types` (shared Zod schemas).
+- pnpm workspaces monorepo: `apps/api` (NestJS + Prisma + PostgreSQL), `apps/web` (React + Vite), `types` (shared Zod schemas).
 - Node 20 LTS, PostgreSQL in Docker, GitHub Actions.
 - No new dependencies or tools without asking the user first (CLAUDE.md rule).
 
@@ -58,7 +58,7 @@ Check the actual script names in each `package.json` before using them; don't in
 
 - Multi-stage: install with pnpm (lockfile frozen), build, copy only what runtime needs.
 - The API image must run `prisma generate` at build time, otherwise the client won't match the schema.
-- The `packages/types` workspace must be built/available to both apps inside the image.
+- The `types` workspace must be built/available to both apps inside the image.
 - Run as a non-root user. Keep `.dockerignore` excluding `node_modules`, `.env`, build output.
 
 ## CI workflow
@@ -106,5 +106,5 @@ Unit tests use in-memory fakes and need no database. Only add a Postgres service
    - **Prisma client mismatch**: run `prisma generate` after schema changes and in the Docker build.
    - **Stale lockfile**: `--frozen-lockfile` fails when `package.json` changed without `pnpm install`.
    - **API can't reach DB in Docker**: use the service name (`db`) as host, not `localhost`.
-   - **Shared types not found**: `packages/types` not built or not copied into the image.
+   - **Shared types not found**: `types` not built or not copied into the image.
 3. Fix the root cause; don't disable checks or skip tests to get green.

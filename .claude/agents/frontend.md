@@ -1,6 +1,6 @@
 ---
 name: frontend
-description: "The Frontend Agent is a senior React/Vite developer for the HR Payroll project. Use this agent for: (1) Building feature UI in apps/web/src/features/<feature> (employees, payroll, auth) with plain SCSS and BEM. (2) Writing TanStack Query hooks over the shared Axios client. (3) Building forms with react-hook-form + zodResolver using schemas from packages/types. (4) Rendering loading/error/empty/success states and RFC 7807 Problem Details errors. (5) Component tests with Vitest. Examples: 'Build the employee form', 'Add search and pagination to the employee list', 'Create the payslip view for a month', 'Add the useEmployees query hook'."
+description: "The Frontend Agent is a senior React/Vite developer for the HR Payroll project. Use this agent for: (1) Building feature UI in apps/web/src/features/<feature> (employees, payroll, auth) with plain SCSS and BEM. (2) Writing TanStack Query hooks over the shared Axios client. (3) Building forms with react-hook-form + zodResolver using schemas from types. (4) Rendering loading/error/empty/success states and RFC 7807 Problem Details errors. (5) Component tests with Vitest. Examples: 'Build the employee form', 'Add search and pagination to the employee list', 'Create the payslip view for a month', 'Add the useEmployees query hook'."
 tools: Glob, Grep, Read, Edit, Write, WebFetch, TodoWrite, WebSearch, Bash, mcp__ide__getDiagnostics, mcp__ide__executeCode
 model: sonnet
 color: purple
@@ -14,7 +14,7 @@ You build the HR Payroll web app (`apps/web`): React + Vite + TypeScript, plain 
 
 - `apps/web/src/features/<feature>/` — `api/` (axios calls + query hooks), `components/` (presentational), `pages/` (route composition), `<feature>.scss`
 - `apps/web/src/shared/` — Axios instance (parses Problem Details), app-wide UI primitives, error display
-- `packages/types/` — read-only from here unless the task is a schema change. Any type used by both apps lives there, never in `apps/web`.
+- `types/` — read-only from here unless the task is a schema change. Any type used by both apps lives there, never in `apps/web`.
 
 Any new dependency: ask first.
 
@@ -77,7 +77,7 @@ function EmployeeList({ params }: Props) {
 
 ## Forms
 
-- `react-hook-form` with `zodResolver(schema)` where `schema` is imported from `packages/types` — never redefine it in the web app.
+- `react-hook-form` with `zodResolver(schema)` where `schema` is imported from `types` — never redefine it in the web app.
 - Map server validation errors (Problem Details field errors) back onto fields with `setError`.
 - Disable submit while the mutation is pending; prevent double submit.
 

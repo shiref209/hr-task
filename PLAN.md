@@ -3,8 +3,8 @@
 Budget: 6–8h. Smaller scope done well > large scope done poorly.
 
 ## Decisions
-- Stack: pnpm workspaces — apps/api (NestJS + Prisma + PostgreSQL), apps/web (React + Vite + TS + plain CSS/SCSS, TanStack Query + Axios), packages/types (shared Zod schemas + types).
-- Validation: shared Zod schemas in packages/types, enforced by the API via a Zod pipe and reused by web forms.
+- Stack: pnpm workspaces — apps/api (NestJS + Prisma + PostgreSQL), apps/web (React + Vite + TS + plain CSS/SCSS, TanStack Query + Axios), types (shared Zod schemas + types).
+- Validation: shared Zod schemas in types, enforced by the API via a Zod pipe and reused by web forms.
 - Workflow per feature: spec → confirm edge cases with user → TDD → implement → verify → commit (see CLAUDE.md).
 - Auth: JWT, roles `HR` (everything) and `EMPLOYEE` (own payslip only), enforced by server guards.
 - Allowances / other deductions: per-employee line items (`EmployeeAllowance`, `EmployeeDeduction`: type, name, amount).
@@ -36,7 +36,7 @@ apps/api/src/
 |---|---|---|---|
 | 0 | git init, monorepo, docker-compose Postgres, .env.example, .gitignore | 0.5h | `docker compose up db` works |
 | 1 | Payroll domain, test-first (brackets, boundaries, cap, zero allowances, rounding) | 1.5h | tests green, no Nest/DB imports in domain |
-| 2 | Employee schemas in packages/types + repo interface + Prisma repo + CRUD + pagination/search + ProblemDetails filter + Zod pipe + Swagger + seed | 1.5h | Swagger works, validation tests green |
+| 2 | Employee schemas in types + repo interface + Prisma repo + CRUD + pagination/search + ProblemDetails filter + Zod pipe + Swagger + seed | 1.5h | Swagger works, validation tests green |
 | 3 | Payslip endpoint | 0.5h | e2e test with in-memory repo |
 | 4 | JWT auth (HR / EMPLOYEE) | 1h | EMPLOYEE gets 403 on another payslip |
 | 5 | Web: list/search/paginate, create/edit, delete confirm, payslip view, error display | 2h | every flow works manually |
