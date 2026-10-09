@@ -11,9 +11,11 @@ import { STATUS_CODES } from 'http';
 import {
   BusinessRuleError,
   ConflictError,
+  ForbiddenError,
   MalformedRequestError,
   DomainError,
   NotFoundError,
+  UnauthorizedError,
   UnsupportedMediaTypeError,
   ValidationError,
 } from '../errors/domain-errors';
@@ -35,6 +37,16 @@ const KINDS = {
     type: ProblemType.malformedRequest,
     title: 'Malformed request',
   },
+  unauthorized: {
+    status: 401,
+    type: ProblemType.unauthorized,
+    title: 'Unauthorized',
+  },
+  forbidden: {
+    status: 403,
+    type: ProblemType.forbidden,
+    title: 'Forbidden',
+  },
   notFound: {
     status: 404,
     type: ProblemType.notFound,
@@ -51,6 +63,11 @@ const KINDS = {
     type: ProblemType.unsupportedMediaType,
     title: 'Unsupported media type',
   },
+  tooManyRequests: {
+    status: 429,
+    type: ProblemType.tooManyRequests,
+    title: 'Too many requests',
+  },
   businessRule: {
     status: 422,
     type: ProblemType.businessRuleViolation,
@@ -62,6 +79,8 @@ const KINDS = {
 const DOMAIN_KINDS: [new (...args: never[]) => DomainError, Kind][] = [
   [ValidationError, KINDS.validation],
   [MalformedRequestError, KINDS.malformed],
+  [UnauthorizedError, KINDS.unauthorized],
+  [ForbiddenError, KINDS.forbidden],
   [NotFoundError, KINDS.notFound],
   [ConflictError, KINDS.conflict],
   [UnsupportedMediaTypeError, KINDS.unsupported],
@@ -72,6 +91,7 @@ const HTTP_KINDS: Record<number, Kind> = {
   404: KINDS.notFound,
   413: KINDS.tooLarge,
   415: KINDS.unsupported,
+  429: KINDS.tooManyRequests,
 };
 
 @Catch()
@@ -112,7 +132,13 @@ export class ErrorDetailsFilter implements ExceptionFilter {
         type: 'about:blank',
         title: STATUS_CODES[status] ?? 'Error',
       };
-      return { ...kind, detail: exception.message };
+      return {
+        ...kind,
+        detail:
+          status === 429
+            ? 'Too many sign-in attempts. Try again in a minute.'
+            : exception.message,
+      };
     }
     return this.unexpected(exception, 500);
   }

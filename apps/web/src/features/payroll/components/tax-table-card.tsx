@@ -1,6 +1,6 @@
 import type { TaxTable } from '@hr/types';
 import { useId } from 'react';
-import { formatAmount } from '../../../shared/format/format-amount';
+import { formatAmount } from '@hr/types';
 import { Badge, Menu } from '../../../shared/ui';
 import { formatRate } from '../format-rate';
 

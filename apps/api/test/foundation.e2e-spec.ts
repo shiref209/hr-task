@@ -10,13 +10,13 @@ import {
   Post,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import request from 'supertest';
 import { z } from 'zod';
 import { ProblemType } from '@hr/types';
 import { configureApp } from '../src/configure-app';
 import { ConflictError } from '../src/common/errors/domain-errors';
 import { PaginatedResult } from '../src/common/http/paginated-result';
 import { ZodValidationPipe } from '../src/common/http/zod-validation.pipe';
+import { authCookie, httpAs } from './auth';
 
 const createSchema = z.strictObject({
   name: z.string(),
@@ -71,7 +71,7 @@ class FoundationTestModule {}
 
 describe('API foundation (e2e)', () => {
   let app: INestApplication;
-  const http = () => request(app.getHttpServer());
+  const http = () => httpAs(app, authCookie('HR'));
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({

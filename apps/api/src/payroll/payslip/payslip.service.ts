@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Employee, Payslip, TaxTable } from '@hr/types';
+import { formatAmount, type Payslip } from '@hr/types';
 import { EmployeeNotFoundError } from '../../employees/employees.errors';
 import {
   EMPLOYEE_REPOSITORY,
@@ -14,17 +14,12 @@ import {
   SOCIAL_INSURANCE_REPOSITORY,
   type SocialInsuranceRepository,
 } from '../social-insurance/social-insurance.repository';
-import { TaxTableNotFoundError } from '../tax-tables/tax-tables.errors';
+import { resolveAppliedTaxTable } from '../tax-tables/resolve-applied-tax-table';
 import {
   TAX_TABLE_REPOSITORY,
   type TaxTableRepository,
 } from '../tax-tables/tax-tables.repository';
 import { EmployeeInactiveError, NotYetHiredError } from './payslip.errors';
-
-const withThousandsSeparators = (amount: string) => {
-  const [whole, cents] = amount.split('.');
-  return `${whole.replace(/\B(?=(\d{3})+$)/g, ',')}.${cents}`;
-};
 
 @Injectable()
 export class PayslipService {
@@ -47,7 +42,7 @@ export class PayslipService {
 
     const [taxTable, socialInsurance, { allowances, deductions }] =
       await Promise.all([
-        this.taxTableOf(employee),
+        resolveAppliedTaxTable(employee, this.taxTables),
         this.socialInsurance.get(),
         this.payItems.findByEmployee(employeeId),
       ]);
@@ -68,16 +63,8 @@ export class PayslipService {
         breakdown.deductionsUnapplied === '0.00'
           ? []
           : [
-              `${withThousandsSeparators(breakdown.deductionsUnapplied)} of deductions could not be applied`,
+              `${formatAmount(breakdown.deductionsUnapplied)} of deductions could not be applied`,
             ],
     };
-  }
-
-  private async taxTableOf(employee: Employee): Promise<TaxTable> {
-    const table = employee.taxTable
-      ? await this.taxTables.findById(employee.taxTable.id)
-      : await this.taxTables.findDefault();
-    if (!table) throw new TaxTableNotFoundError();
-    return table;
   }
 }

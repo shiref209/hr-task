@@ -1,5 +1,5 @@
 import type { PayItems } from '@hr/types';
-import { formatAmount } from '../../../shared/format/format-amount';
+import { formatAmount } from '@hr/types';
 import { normalizeSalary, parseSalary } from '../../employees/form/salary';
 
 export interface PayItemRow {

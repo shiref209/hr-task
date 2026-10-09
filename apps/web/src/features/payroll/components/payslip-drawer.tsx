@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { currentMonth } from '../../../shared/format/month';
+import { currentMonth } from '@hr/types';
 import { toApiError } from '../../../shared/http/http-client';
 import { Drawer, ErrorView, Skeleton, TextInput, useToast } from '../../../shared/ui';
 import { employeeKeys } from '../../employees/api/employee-keys';

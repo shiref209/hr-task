@@ -1,7 +1,7 @@
 import { localToday, type Department } from '@hr/types';
 import { useEffect, useRef, useState } from 'react';
 import { useForm, useWatch, type Path } from 'react-hook-form';
-import { formatAmount } from '../../../shared/format/format-amount';
+import { formatAmount } from '@hr/types';
 import { SelectInput, TextInput } from '../../../shared/ui';
 import type { ServerFormErrors } from '../form/api-error-to-form';
 import { employeeResolver } from '../form/employee-resolver';

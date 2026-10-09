@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import request from 'supertest';
 import { ProblemType } from '@hr/types';
 import type { Employee, PayItems, TaxTable } from '@hr/types';
+import { AuthModule } from '../src/auth/auth.module';
 import { CLOCK } from '../src/common/clock';
 import { configureApp } from '../src/configure-app';
 import { DepartmentsModule } from '../src/departments/departments.module';
@@ -15,6 +15,7 @@ import { PayrollModule } from '../src/payroll/payroll.module';
 import { SOCIAL_INSURANCE_REPOSITORY } from '../src/payroll/social-insurance/social-insurance.repository';
 import { TAX_TABLE_REPOSITORY } from '../src/payroll/tax-tables/tax-tables.repository';
 import { aDeletedEmployee, anEmployee } from './fakes/employee.builder';
+import { authCookie, httpAs, withAuthFakes } from './auth';
 import { FixedClock } from './fakes/fixed-clock';
 import { InMemoryDepartmentRepository } from './fakes/in-memory-department-repository';
 import { InMemoryEmployeeRepository } from './fakes/in-memory-employee-repository';
@@ -33,7 +34,7 @@ const UNKNOWN_ID = '99999999-9999-4999-8999-999999999999';
 
 describe('Payroll (e2e)', () => {
   let app: INestApplication;
-  const http = () => request(app.getHttpServer());
+  const http = () => httpAs(app, authCookie('HR'));
 
   async function boot(
     options: {
@@ -49,9 +50,16 @@ describe('Payroll (e2e)', () => {
       undefined,
       tables.map((t) => ({ id: t.id, name: t.name })),
     );
-    const moduleRef = await Test.createTestingModule({
-      imports: [EmployeesModule, DepartmentsModule, PayrollModule],
-    })
+    const moduleRef = await withAuthFakes(
+      Test.createTestingModule({
+        imports: [
+          AuthModule,
+          EmployeesModule,
+          DepartmentsModule,
+          PayrollModule,
+        ],
+      }),
+    )
       .overrideProvider(EMPLOYEE_REPOSITORY)
       .useValue(employees)
       .overrideProvider(DEPARTMENT_REPOSITORY)

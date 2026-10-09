@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import request from 'supertest';
 import { ProblemType } from '@hr/types';
 import type { Employee } from '@hr/types';
+import { AuthModule } from '../src/auth/auth.module';
 import { CLOCK } from '../src/common/clock';
 import { configureApp } from '../src/configure-app';
 import { DepartmentsModule } from '../src/departments/departments.module';
@@ -18,6 +18,7 @@ import {
   FINANCE,
   HUMAN_RESOURCES,
 } from './fakes/employee.builder';
+import { authCookie, httpAs, withAuthFakes } from './auth';
 import { FixedClock } from './fakes/fixed-clock';
 import { InMemoryDepartmentRepository } from './fakes/in-memory-department-repository';
 import { InMemoryEmployeeRepository } from './fakes/in-memory-employee-repository';
@@ -58,13 +59,15 @@ function validBody(overrides: Record<string, unknown> = {}) {
 describe('Employees (e2e)', () => {
   let app: INestApplication;
   let storage: InMemoryFileStorage;
-  const http = () => request(app.getHttpServer());
+  const http = () => httpAs(app, authCookie('HR'));
 
   async function boot(seed: Employee[] = []) {
     storage = new InMemoryFileStorage();
-    const moduleRef = await Test.createTestingModule({
-      imports: [EmployeesModule, DepartmentsModule],
-    })
+    const moduleRef = await withAuthFakes(
+      Test.createTestingModule({
+        imports: [AuthModule, EmployeesModule, DepartmentsModule],
+      }),
+    )
       .overrideProvider(TAX_TABLE_REPOSITORY)
       .useValue(new InMemoryTaxTableRepository())
       .overrideProvider(SOCIAL_INSURANCE_REPOSITORY)

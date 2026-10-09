@@ -19,6 +19,7 @@ export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
     new DocumentBuilder()
       .setTitle('HR Payroll API')
       .setVersion(version)
+      .addCookieAuth('access_token')
       .build(),
   );
   document.components = {

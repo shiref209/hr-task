@@ -8,7 +8,12 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   idParamSchema,
   taxTableInputSchema,
@@ -17,6 +22,7 @@ import {
   type TaxTableInput,
 } from '@hr/types';
 import { z } from 'zod';
+import { Roles } from '../../auth/roles.decorator';
 import { ZodValidationPipe } from '../../common/http/zod-validation.pipe';
 import {
   apiBody,
@@ -30,6 +36,8 @@ const IdParam = () => Param(new ZodValidationPipe(idParamSchema));
 type IdParam = { id: string };
 
 @ApiTags('Tax tables')
+@ApiCookieAuth()
+@Roles('HR')
 @Controller('tax-tables')
 export class TaxTablesController {
   constructor(private readonly taxTables: TaxTablesService) {}
@@ -39,6 +47,7 @@ export class TaxTablesController {
     summary: 'List tax tables with their brackets, default first',
   })
   @apiEnvelope(z.array(taxTableSchema))
+  @apiProblems(401, 403)
   list(): Promise<TaxTable[]> {
     return this.taxTables.list();
   }
@@ -47,7 +56,7 @@ export class TaxTablesController {
   @ApiOperation({ summary: 'Create a tax table' })
   @apiBody(taxTableInputSchema)
   @apiEnvelope(taxTableSchema, { status: 201 })
-  @apiProblems(400, 409, 422)
+  @apiProblems(400, 401, 403, 409, 422)
   create(
     @Body(new ZodValidationPipe(taxTableInputSchema)) input: TaxTableInput,
   ): Promise<TaxTable> {
@@ -59,7 +68,7 @@ export class TaxTablesController {
   @apiIdParam()
   @apiBody(taxTableInputSchema)
   @apiEnvelope(taxTableSchema)
-  @apiProblems(400, 404, 409, 422)
+  @apiProblems(400, 401, 403, 404, 409, 422)
   update(
     @IdParam() { id }: IdParam,
     @Body(new ZodValidationPipe(taxTableInputSchema)) input: TaxTableInput,
@@ -72,7 +81,7 @@ export class TaxTablesController {
   @ApiOperation({ summary: 'Make a tax table the default' })
   @apiIdParam()
   @apiEnvelope(taxTableSchema)
-  @apiProblems(400, 404)
+  @apiProblems(400, 401, 403, 404)
   setDefault(@IdParam() { id }: IdParam): Promise<TaxTable> {
     return this.taxTables.setDefault(id);
   }
@@ -82,7 +91,7 @@ export class TaxTablesController {
   @ApiOperation({ summary: 'Delete an unused, non-default tax table' })
   @apiIdParam()
   @ApiResponse({ status: 204, description: 'Deleted' })
-  @apiProblems(400, 404, 409)
+  @apiProblems(400, 401, 403, 404, 409)
   delete(@IdParam() { id }: IdParam): Promise<void> {
     return this.taxTables.delete(id);
   }

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { localToday } from '../common/dates';
 import { paginationQuerySchema } from '../common/pagination';
+import { moneyAmount } from '../payroll/money.schema';
 
 export const employeeStatusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
   error: 'Select a status',
@@ -37,6 +38,18 @@ export const employeeSchema = z.object({
 });
 export type Employee = z.infer<typeof employeeSchema>;
 
+// What an EMPLOYEE may see of a colleague: no pay data.
+export const employeeSummarySchema = employeeSchema.omit({
+  baseSalary: true,
+  taxTable: true,
+});
+export type EmployeeSummary = z.infer<typeof employeeSummarySchema>;
+
+export function toEmployeeSummary(employee: Employee): EmployeeSummary {
+  const { baseSalary: _baseSalary, taxTable: _taxTable, ...summary } = employee;
+  return summary;
+}
+
 const requiredText = (label: string) =>
   z
     .string({ error: `${label} is required` })
@@ -67,18 +80,14 @@ const phone = z
   .transform((value) => value || null)
   .nullable();
 
-const SALARY_MESSAGE = 'Enter an amount greater than 0 with up to 2 decimals';
-
-// Max 10 integer digits + 2 decimals = NUMERIC(12,2); inputs are validated, never rounded.
-const baseSalary = z
-  .string({
+const baseSalary = moneyAmount(
+  z.string({
     error: (issue) =>
       issue.input === undefined
         ? 'Salary is required'
         : 'Salary must be sent as a text amount, e.g. "5000.00"',
-  })
-  .regex(/^\d{1,10}(\.\d{1,2})?$/, SALARY_MESSAGE)
-  .refine((value) => /[1-9]/.test(value), SALARY_MESSAGE);
+  }),
+);
 
 const hireDate = z.iso
   .date({ error: 'Enter a valid date' })

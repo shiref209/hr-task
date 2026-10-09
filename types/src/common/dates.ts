@@ -5,3 +5,6 @@ export const localToday = (): string => {
   const day = String(now.getDate()).padStart(2, '0');
   return `${now.getFullYear()}-${month}-${day}`;
 };
+
+/** The current local month as "YYYY-MM". */
+export const currentMonth = (): string => localToday().slice(0, 7);

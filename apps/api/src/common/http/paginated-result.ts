@@ -16,4 +16,14 @@ export class PaginatedResult<T> {
       totalPages: Math.ceil(totalItems / pageSize),
     };
   }
+
+  map<U>(transform: (item: T) => U): PaginatedResult<U> {
+    const { page, pageSize, totalItems } = this.meta;
+    return new PaginatedResult(
+      this.items.map(transform),
+      page,
+      pageSize,
+      totalItems,
+    );
+  }
 }

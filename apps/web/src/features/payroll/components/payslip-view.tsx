@@ -1,5 +1,5 @@
 import type { Payslip } from '@hr/types';
-import { formatAmount } from '../../../shared/format/format-amount';
+import { formatAmount } from '@hr/types';
 import { formatRate } from '../format-rate';
 
 const isZero = (amount: string) => !/[1-9]/.test(amount);

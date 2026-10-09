@@ -1,6 +1,10 @@
+import './placeholder-env';
 import { Test } from '@nestjs/testing';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { AuthModule } from '../auth/auth.module';
+import { REFRESH_TOKEN_REPOSITORY } from '../auth/refresh-tokens.repository';
+import { USER_REPOSITORY } from '../auth/users.repository';
 import { configureApp } from '../configure-app';
 import { DepartmentsModule } from '../departments/departments.module';
 import { DEPARTMENT_REPOSITORY } from '../departments/departments.repository';
@@ -30,8 +34,12 @@ function sortKeys(value: unknown): unknown {
 // Routes are only described, never called, so empty stubs keep the export free of a database.
 async function exportDocument(): Promise<void> {
   const moduleRef = await Test.createTestingModule({
-    imports: [EmployeesModule, DepartmentsModule, PayrollModule],
+    imports: [AuthModule, EmployeesModule, DepartmentsModule, PayrollModule],
   })
+    .overrideProvider(USER_REPOSITORY)
+    .useValue({})
+    .overrideProvider(REFRESH_TOKEN_REPOSITORY)
+    .useValue({})
     .overrideProvider(EMPLOYEE_REPOSITORY)
     .useValue({})
     .overrideProvider(DEPARTMENT_REPOSITORY)

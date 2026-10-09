@@ -3,6 +3,9 @@ import { z } from 'zod';
 export const ProblemType = {
   validationError: '/problems/validation-error',
   malformedRequest: '/problems/malformed-request',
+  unauthorized: '/problems/unauthorized',
+  forbidden: '/problems/forbidden',
+  tooManyRequests: '/problems/too-many-requests',
   notFound: '/problems/not-found',
   conflict: '/problems/conflict',
   payloadTooLarge: '/problems/payload-too-large',

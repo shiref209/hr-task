@@ -1,5 +1,5 @@
 import type { Employee } from '@hr/types';
-import { formatAmount } from '../../../shared/format/format-amount';
+import { formatAmount } from '@hr/types';
 import { formatDate } from '../../../shared/format/format-date';
 import { resolveAssetUrl } from '../../../shared/http/http-client';
 import { Avatar, Badge } from '../../../shared/ui';

@@ -7,7 +7,6 @@ import { setupSwagger } from './docs/openapi';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.enableCors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:5173' });
   configureApp(app);
   setupSwagger(app, { enabled: appConfig.SWAGGER_ENABLED });
   app.useStaticAssets(appConfig.UPLOADS_DIR, { prefix: '/uploads' });

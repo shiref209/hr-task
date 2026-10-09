@@ -23,9 +23,7 @@ export const taxTableInputSchema = z
       .trim()
       .min(1, 'Name is required')
       .max(60, 'Name must be at most 60 characters'),
-    brackets: z
-      .array(taxBracketInputSchema)
-      .min(1, 'Add at least one bracket'),
+    brackets: z.array(taxBracketInputSchema).min(1, 'Add at least one bracket'),
   })
   .catchall(z.unknown().refine(() => false, 'Unknown field'))
   .superRefine(({ brackets }, ctx) => {
@@ -56,7 +54,15 @@ export const taxTableSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   isDefault: z.boolean(),
-  brackets: z.array(z.object({ upTo: z.string().nullable(), rate: z.string() })),
+  brackets: z.array(
+    z.object({ upTo: z.string().nullable(), rate: z.string() }),
+  ),
   employeeCount: z.number().int(),
 });
 export type TaxTable = z.infer<typeof taxTableSchema>;
+
+// The table applied to the signed-in employee; counts of other employees are not theirs to see.
+export const appliedTaxTableSchema = taxTableSchema.omit({
+  employeeCount: true,
+});
+export type AppliedTaxTable = z.infer<typeof appliedTaxTableSchema>;
