@@ -46,6 +46,7 @@ model Employee {
   taxTableId      String?           @map("tax_table_id") @db.Uuid
   taxTable        TaxTable?         @relation(fields: [taxTableId], references: [id], onDelete: Restrict)
   payItems        EmployeePayItem[]
+  user            User?
   deletedAt       DateTime?         @map("deleted_at")
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
@@ -121,4 +122,36 @@ model EmployeePayItem {
   // FK index; serves findByEmployee ORDER BY position
   @@index([employeeId, position])
   @@map("employee_pay_items")
+}
+
+// Passwords are stored only as a scrypt hash. CHECK (password_hash LIKE 'scrypt$%') is hand-written in the migration.
+// Role = linked employee's type.
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  // Lowercased by the app, so a plain unique index is case-insensitive.
+  email         String         @unique @db.VarChar(254)
+  passwordHash  String         @map("password_hash")
+  employeeId    String         @unique @map("employee_id") @db.Uuid
+  employee      Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// tokenHash = hex SHA-256 of the opaque token; the raw token is never stored.
+model RefreshToken {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash        String    @unique @map("token_hash") @db.Char(64)
+  expiresAt        DateTime  @map("expires_at")
+  revokedAt        DateTime? @map("revoked_at")
+  // Absolute session lifetime: carried over unchanged on rotation.
+  sessionStartedAt DateTime  @map("session_started_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }

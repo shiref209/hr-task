@@ -1,3 +1,4 @@
+import { randomBytes, scrypt } from 'node:crypto';
 import { PrismaClient, EmployeeStatus, EmployeeType } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -33,6 +34,26 @@ const employees: SeedEmployee[] = [
     hireDate: '2019-03-10',
     baseSalary: '45000.00',
     type: 'HR',
+  },
+  {
+    fullName: 'Hana Rashed',
+    email: 'test@hr.com',
+    phone: null,
+    jobTitle: 'HR Specialist',
+    department: 'Human Resources',
+    hireDate: '2022-01-10',
+    baseSalary: '26000.00',
+    type: 'HR',
+  },
+  {
+    fullName: 'Eyad Mostafa',
+    email: 'test@employee.com',
+    phone: null,
+    jobTitle: 'Software Engineer',
+    department: 'Engineering',
+    hireDate: '2023-05-01',
+    baseSalary: '22000.00',
+    type: 'EMPLOYEE',
   },
   {
     fullName: 'Hassan Ibrahim',
@@ -206,6 +227,28 @@ async function seedPayroll(): Promise<void> {
   }
 }
 
+// Format (must match the API's ScryptPasswordHasher): scrypt$N$r$p$<salt base64>$<hash base64>, 16-byte salt, 64-byte key.
+const SCRYPT = { N: 16384, r: 8, p: 1 };
+function hashPassword(plain: string): Promise<string> {
+  const salt = randomBytes(16);
+  return new Promise((resolve, reject) =>
+    scrypt(plain, salt, 64, SCRYPT, (err, key) =>
+      err
+        ? reject(err)
+        : resolve(`scrypt$${SCRYPT.N}$${SCRYPT.r}$${SCRYPT.p}$${salt.toString('base64')}$${key.toString('base64')}`),
+    ),
+  );
+}
+
+// Demo credentials (documented in the README). Existing users are left untouched.
+async function seedUsers(): Promise<void> {
+  for (const email of ['test@hr.com', 'test@employee.com']) {
+    if (await prisma.user.findUnique({ where: { email } })) continue;
+    const employee = await prisma.employee.findUniqueOrThrow({ where: { email } });
+    await prisma.user.create({ data: { email, passwordHash: await hashPassword('test@123'), employeeId: employee.id } });
+  }
+}
+
 async function main(): Promise<void> {
   const departmentIds = new Map<string, string>();
   for (const name of departments) {
@@ -229,6 +272,7 @@ async function main(): Promise<void> {
   }
 
   await seedPayroll();
+  await seedUsers();
 }
 
 main()
