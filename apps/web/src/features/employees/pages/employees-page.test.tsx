@@ -18,6 +18,17 @@ import {
 } from '../test-utils';
 import { EmployeesPage } from './employees-page';
 
+// Session is mocked as a signed-in HR user (plain functions: survive vi.resetAllMocks).
+vi.mock('../../auth/api/auth-api', async () => {
+  const { anAuthUser } = await import('../../auth/test-utils');
+  return {
+    fetchMe: async () => anAuthUser('HR'),
+    login: async () => anAuthUser('HR'),
+    logout: async () => undefined,
+    fetchMyTaxTable: async () => undefined,
+  };
+});
+
 vi.mock('../api/employees-api', () => ({
   fetchEmployees: vi.fn(),
   fetchDepartments: vi.fn(),
@@ -421,7 +432,7 @@ describe('EmployeesPage - errors', () => {
     expect(listMock).toHaveBeenCalledTimes(2);
   });
 
-  it('disables the department filter with a hint when departments fail, list still renders', async () => {
+  it('disables the department filter with a placeholder message when departments fail, list still renders', async () => {
     departmentsMock.mockRejectedValue(
       problemError(500, 'Server error', 'Departments down'),
     );
@@ -430,7 +441,7 @@ describe('EmployeesPage - errors', () => {
     expect(await screen.findByRole('table')).toBeInTheDocument();
     const select = screen.getByRole('combobox', { name: 'Department' });
     await waitFor(() => expect(select).toBeDisabled());
-    expect(select).toHaveAccessibleDescription(/.+/);
+    expect(within(select).getByRole('option', { name: 'Departments could not be loaded' })).toBeInTheDocument();
   });
 });
 

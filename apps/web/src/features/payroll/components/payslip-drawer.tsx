@@ -2,10 +2,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { currentMonth } from '@hr/types';
 import { toApiError } from '../../../shared/http/http-client';
-import { Drawer, ErrorView, Skeleton, TextInput, useToast } from '../../../shared/ui';
+import { Drawer, useToast } from '../../../shared/ui';
 import { employeeKeys } from '../../employees/api/employee-keys';
 import { usePayslip } from '../api/use-payslip';
-import { PayslipView } from './payslip-view';
+import { PayslipPanel } from './payslip-panel';
 import '../payroll.scss';
 
 export interface PayslipTarget {
@@ -41,35 +41,5 @@ function PayslipBody({ employeeId, onClose }: { employeeId: string; onClose: () 
     onClose();
   }, [status, toast, queryClient, onClose]);
 
-  const renderPayslip = () => {
-    if (payslip.isError) {
-      if (status === 422) {
-        return (
-          <p className="payslip-drawer__message" role="status">
-            {toApiError(payslip.error).message}
-          </p>
-        );
-      }
-      return <ErrorView error={payslip.error} onRetry={() => void payslip.refetch()} />;
-    }
-    if (payslip.data === undefined) {
-      return (
-        <div aria-busy="true">
-          <Skeleton variant="rect" />
-        </div>
-      );
-    }
-    return (
-      <div aria-busy={payslip.isPlaceholderData}>
-        <PayslipView payslip={payslip.data} />
-      </div>
-    );
-  };
-
-  return (
-    <div className="payslip-drawer">
-      <TextInput label="Month" type="month" value={month} onChange={(event) => setMonth(event.target.value)} />
-      {renderPayslip()}
-    </div>
-  );
+  return <PayslipPanel month={month} onMonthChange={setMonth} payslip={payslip} />;
 }

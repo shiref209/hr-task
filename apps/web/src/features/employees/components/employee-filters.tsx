@@ -6,6 +6,7 @@ interface EmployeeFiltersProps {
   state: EmployeeListState;
   departments: Department[];
   departmentsFailed: boolean;
+  canShowDeleted: boolean;
   onChange: (changes: Partial<EmployeeListState>) => void;
 }
 
@@ -18,6 +19,7 @@ export function EmployeeFilters({
   state,
   departments,
   departmentsFailed,
+  canShowDeleted,
   onChange,
 }: EmployeeFiltersProps) {
   return (
@@ -30,11 +32,11 @@ export function EmployeeFilters({
       />
       <SelectInput
         label="Department"
-        placeholder="All departments"
+        // Message goes in the placeholder, not a hint: a hint line would push this control out of line with the other filters.
+        placeholder={departmentsFailed ? 'Departments could not be loaded' : 'All departments'}
         options={departments.map(({ id, name }) => ({ value: id, label: name }))}
         value={state.departmentId ?? ''}
         disabled={departmentsFailed}
-        hint={departmentsFailed ? 'Departments could not be loaded' : undefined}
         onChange={(event) => onChange({ departmentId: event.target.value || undefined })}
       />
       <SelectInput
@@ -46,14 +48,16 @@ export function EmployeeFilters({
           onChange({ status: employeeStatusSchema.safeParse(event.target.value).data })
         }
       />
-      <label className="employee-filters__toggle">
-        <input
-          type="checkbox"
-          checked={state.deleted}
-          onChange={(event) => onChange({ deleted: event.target.checked })}
-        />
-        Show deleted
-      </label>
+      {canShowDeleted ? (
+        <label className="employee-filters__toggle">
+          <input
+            type="checkbox"
+            checked={state.deleted}
+            onChange={(event) => onChange({ deleted: event.target.checked })}
+          />
+          Show deleted
+        </label>
+      ) : null}
     </div>
   );
 }

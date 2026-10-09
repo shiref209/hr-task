@@ -10,6 +10,17 @@ import { aSocialInsurance } from '../features/payroll/test-utils';
 import { ToastProvider } from '../shared/ui';
 import { AppRoutes } from './router';
 
+// Session is mocked as a signed-in HR user (plain functions: survive vi.resetAllMocks).
+vi.mock('../features/auth/api/auth-api', async () => {
+  const { anAuthUser } = await import('../features/auth/test-utils');
+  return {
+    fetchMe: async () => anAuthUser('HR'),
+    login: async () => anAuthUser('HR'),
+    logout: async () => undefined,
+    fetchMyTaxTable: async () => undefined,
+  };
+});
+
 vi.mock('../features/employees/api/employees-api', () => ({
   fetchEmployees: vi.fn(),
   fetchDepartments: vi.fn(),

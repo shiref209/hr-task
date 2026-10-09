@@ -1,8 +1,7 @@
 import type { TaxTable } from '@hr/types';
 import { useId } from 'react';
-import { formatAmount } from '@hr/types';
 import { Badge, Menu } from '../../../shared/ui';
-import { formatRate } from '../format-rate';
+import { TaxBracketList } from './tax-bracket-list';
 
 interface TaxTableCardProps {
   table: TaxTable;
@@ -33,13 +32,7 @@ export function TaxTableCard({ table, onEdit, onSetDefault, onDelete }: TaxTable
           <Menu label={`Actions for ${table.name}`} items={items} />
         </div>
       </header>
-      <ul className="tax-table-card__brackets">
-        {table.brackets.map(({ upTo, rate }) => (
-          <li key={upTo ?? 'open'}>
-            {upTo === null ? 'above' : `up to ${formatAmount(upTo)}`} · {formatRate(rate)}%
-          </li>
-        ))}
-      </ul>
+      <TaxBracketList brackets={table.brackets} />
       <p className="tax-table-card__usage">
         Used by {count} {count === 1 ? 'employee' : 'employees'}
       </p>

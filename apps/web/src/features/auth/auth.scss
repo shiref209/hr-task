@@ -1,0 +1,48 @@
+.user-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+
+  &__identity {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__role {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+}
+
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-4);
+
+  &__brand {
+    color: var(--color-primary);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  &__card {
+    width: 100%;
+    max-width: 24rem;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}

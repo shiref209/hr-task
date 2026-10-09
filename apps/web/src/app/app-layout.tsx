@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { useSession } from '../features/auth/api/use-session';
+import { UserMenu } from '../features/auth/components/user-menu';
 import './app-layout.scss';
 
 export function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const user = useSession().data ?? null;
+  const isHr = user?.role === 'HR';
   const menuButton = useRef<HTMLButtonElement>(null);
 
   const closeMenu = () => {
@@ -50,23 +54,32 @@ export function AppLayout() {
                 Employees
               </NavLink>
             </li>
-            <li className="app-layout__group">
-              <p className="app-layout__group-title">Settings</p>
-              <ul className="app-layout__list">
-                <li>
-                  <NavLink to="/settings/tax-tables" className="app-layout__link" onClick={closeMenu}>
-                    Tax tables
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/settings/social-insurance" className="app-layout__link" onClick={closeMenu}>
-                    Social insurance
-                  </NavLink>
-                </li>
-              </ul>
-            </li>
+            {isHr ? (
+              <li className="app-layout__group">
+                <p className="app-layout__group-title">Settings</p>
+                <ul className="app-layout__list">
+                  <li>
+                    <NavLink to="/settings/tax-tables" className="app-layout__link" onClick={closeMenu}>
+                      Tax tables
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/settings/social-insurance" className="app-layout__link" onClick={closeMenu}>
+                      Social insurance
+                    </NavLink>
+                  </li>
+                </ul>
+              </li>
+            ) : (
+              <li>
+                <NavLink to="/my-pay" className="app-layout__link" onClick={closeMenu}>
+                  My pay
+                </NavLink>
+              </li>
+            )}
           </ul>
         </nav>
+        {user ? <UserMenu user={user} /> : null}
       </div>
       <main className="app-layout__main">
         <Outlet />

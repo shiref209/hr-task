@@ -9,6 +9,8 @@ import { EmployeeStatusBadge } from './employee-status-badge';
 interface EmployeeListProps {
   employees: Employee[];
   busy: boolean;
+  /** HR only. EMPLOYEE rows are summaries: no salary, nothing actionable. */
+  canManage: boolean;
   onRestore: (employee: Employee) => void;
   onEdit: (employee: Employee) => void;
   onPayslip: (employee: Employee) => void;
@@ -16,7 +18,7 @@ interface EmployeeListProps {
 }
 
 // Explicit roles keep table semantics when the mobile styles turn rows into cards (display: block).
-export function EmployeeList({ employees, busy, onRestore, onEdit, onPayslip, onDelete }: EmployeeListProps) {
+export function EmployeeList({ employees, busy, canManage, onRestore, onEdit, onPayslip, onDelete }: EmployeeListProps) {
   return (
     <table className="employee-list" aria-busy={busy}>
       <caption className="visually-hidden">Employees</caption>
@@ -25,9 +27,9 @@ export function EmployeeList({ employees, busy, onRestore, onEdit, onPayslip, on
           <th role="columnheader" scope="col">Name</th>
           <th role="columnheader" scope="col">Department</th>
           <th role="columnheader" scope="col">Job title</th>
-          <th role="columnheader" scope="col">Salary</th>
+          {canManage ? <th role="columnheader" scope="col">Salary</th> : null}
           <th role="columnheader" scope="col">Status</th>
-          <th role="columnheader" scope="col">Actions</th>
+          {canManage ? <th role="columnheader" scope="col">Actions</th> : null}
         </tr>
       </thead>
       <tbody role="rowgroup">
@@ -52,15 +54,19 @@ export function EmployeeList({ employees, busy, onRestore, onEdit, onPayslip, on
             </td>
             <td role="cell" className="employee-list__cell employee-list__cell--department">{employee.department.name}</td>
             <td role="cell" className="employee-list__cell employee-list__cell--job">{employee.jobTitle}</td>
-            <td role="cell" className="employee-list__cell employee-list__cell--amount">
-              {formatAmount(employee.baseSalary)}
-            </td>
+            {canManage ? (
+              <td role="cell" className="employee-list__cell employee-list__cell--amount">
+                {formatAmount(employee.baseSalary)}
+              </td>
+            ) : null}
             <td role="cell" className="employee-list__cell employee-list__cell--status">
               <EmployeeStatusBadge status={employee.status} />
             </td>
-            <td role="cell" className="employee-list__cell employee-list__cell--actions">
-              <EmployeeRowActions employee={employee} onRestore={onRestore} onEdit={onEdit} onPayslip={onPayslip} onDelete={onDelete} />
-            </td>
+            {canManage ? (
+              <td role="cell" className="employee-list__cell employee-list__cell--actions">
+                <EmployeeRowActions employee={employee} onRestore={onRestore} onEdit={onEdit} onPayslip={onPayslip} onDelete={onDelete} />
+              </td>
+            ) : null}
           </tr>
         ))}
       </tbody>

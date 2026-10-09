@@ -106,6 +106,10 @@
     &__sidebar {
       display: flex;
       flex: 0 0 15rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
       border-bottom: 0;
       border-inline-end: var(--border-width) solid var(--color-border);
     }

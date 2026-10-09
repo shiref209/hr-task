@@ -52,15 +52,6 @@
     font-size: var(--font-size-sm);
   }
 
-  &__brackets {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
   &__title {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
@@ -172,7 +163,16 @@
   }
 }
 
-.payslip-drawer {
+.tax-bracket-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.payslip-panel {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);

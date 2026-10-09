@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, EmptyState, ErrorView, Pagination, Skeleton, useToast } from '../../../shared/ui';
 import { toApiError } from '../../../shared/http/http-client';
 import { useDebouncedValue } from '../../../shared/hooks/use-debounced-value';
+import { useSession } from '../../auth/api/use-session';
 import { useDepartments } from '../api/use-departments';
 import { useEmployees } from '../api/use-employees';
 import { useRestoreEmployee } from '../api/use-restore-employee';
@@ -30,6 +31,7 @@ export function EmployeesPage() {
   const onCreate = () => setDrawer({ mode: 'create' });
   const onEdit = (employee: Employee) =>
     setDrawer({ mode: 'edit', id: employee.id, name: employee.fullName });
+  const canManage = useSession().data?.role === 'HR';
   const { state, update, reset } = useEmployeeListState();
   const debouncedSearch = useDebouncedValue(state.search, SEARCH_DEBOUNCE_MS);
   const query = toListQuery(state, debouncedSearch);
@@ -103,13 +105,19 @@ export function EmployeesPage() {
           />
         );
       }
-      return <EmptyState title="No employees yet" action={<Button onClick={onCreate}>New employee</Button>} />;
+      return (
+        <EmptyState
+          title="No employees yet"
+          action={canManage ? <Button onClick={onCreate}>New employee</Button> : undefined}
+        />
+      );
     }
     return (
       <>
         <EmployeeList
           employees={employees.data.items}
           busy={employees.isFetching}
+          canManage={canManage}
           onRestore={onRestore}
           onEdit={onEdit}
           onPayslip={(employee) => setPayslip({ id: employee.id, name: employee.fullName })}
@@ -129,12 +137,13 @@ export function EmployeesPage() {
     <div className="page employees-page">
       <div className="page__header">
         <h1 className="page__title">Employees</h1>
-        <Button ref={newEmployeeButton} onClick={onCreate}>New employee</Button>
+        {canManage ? <Button ref={newEmployeeButton} onClick={onCreate}>New employee</Button> : null}
       </div>
       <EmployeeFilters
         state={state}
         departments={departments.data ?? []}
         departmentsFailed={departments.isError}
+        canShowDeleted={canManage}
         onChange={update}
       />
       <p className="employees-page__count" aria-live="polite">

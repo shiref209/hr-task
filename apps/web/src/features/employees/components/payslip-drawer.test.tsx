@@ -10,6 +10,17 @@ import { fetchDepartments, fetchEmployees, restoreEmployee } from '../api/employ
 import { EmployeesPage } from '../pages/employees-page';
 import { anEmployee, departments, pageOf } from '../test-utils';
 
+// Session is mocked as a signed-in HR user (plain functions: survive vi.resetAllMocks).
+vi.mock('../../auth/api/auth-api', async () => {
+  const { anAuthUser } = await import('../../auth/test-utils');
+  return {
+    fetchMe: async () => anAuthUser('HR'),
+    login: async () => anAuthUser('HR'),
+    logout: async () => undefined,
+    fetchMyTaxTable: async () => undefined,
+  };
+});
+
 vi.mock('../api/employees-api', () => ({
   fetchEmployees: vi.fn(),
   fetchDepartments: vi.fn(),
