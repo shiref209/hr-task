@@ -11,11 +11,12 @@ interface EmployeeListProps {
   busy: boolean;
   onRestore: (employee: Employee) => void;
   onEdit: (employee: Employee) => void;
+  onPayslip: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
 }
 
 // Explicit roles keep table semantics when the mobile styles turn rows into cards (display: block).
-export function EmployeeList({ employees, busy, onRestore, onEdit, onDelete }: EmployeeListProps) {
+export function EmployeeList({ employees, busy, onRestore, onEdit, onPayslip, onDelete }: EmployeeListProps) {
   return (
     <table className="employee-list" aria-busy={busy}>
       <caption className="visually-hidden">Employees</caption>
@@ -58,7 +59,7 @@ export function EmployeeList({ employees, busy, onRestore, onEdit, onDelete }: E
               <EmployeeStatusBadge status={employee.status} />
             </td>
             <td role="cell" className="employee-list__cell employee-list__cell--actions">
-              <EmployeeRowActions employee={employee} onRestore={onRestore} onEdit={onEdit} onDelete={onDelete} />
+              <EmployeeRowActions employee={employee} onRestore={onRestore} onEdit={onEdit} onPayslip={onPayslip} onDelete={onDelete} />
             </td>
           </tr>
         ))}

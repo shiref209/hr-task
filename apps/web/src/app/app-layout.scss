@@ -1,0 +1,117 @@
+@use '../shared/theme/breakpoints' as *;
+
+// Mobile first: a top bar plus a sidebar sheet; from md the sidebar is a fixed column.
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: var(--border-width) solid var(--color-border);
+    background: var(--color-surface);
+  }
+
+  &__menu-button {
+    padding: var(--space-1) var(--space-3);
+    border: var(--border-width) solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+  }
+
+  &__brand {
+    color: var(--color-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+
+    &--sidebar {
+      display: none;
+    }
+  }
+
+  &__sidebar {
+    display: none;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border-bottom: var(--border-width) solid var(--color-border);
+    background: var(--color-surface);
+
+    &--open {
+      display: flex;
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding-top: var(--space-3);
+  }
+
+  &__group-title {
+    padding-inline: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+  }
+
+  &__link {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-weight: var(--font-weight-medium);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--color-primary-subtle);
+    }
+
+    &[aria-current='page'] {
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+    }
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @include up(md) {
+    flex-direction: row;
+
+    &__bar {
+      display: none;
+    }
+
+    &__sidebar {
+      display: flex;
+      flex: 0 0 15rem;
+      border-bottom: 0;
+      border-inline-end: var(--border-width) solid var(--color-border);
+    }
+
+    &__brand--sidebar {
+      display: block;
+    }
+  }
+}

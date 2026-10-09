@@ -17,7 +17,7 @@ const withBrackets = {
 
 type TaxTableRow = Prisma.TaxTableGetPayload<typeof withBrackets>;
 
-const toTaxTable = (row: TaxTableRow): TaxTable => ({
+const toTaxTable = (row: TaxTableRow, unassigned = 0): TaxTable => ({
   id: row.id,
   name: row.name,
   isDefault: row.isDefault,
@@ -25,7 +25,8 @@ const toTaxTable = (row: TaxTableRow): TaxTable => ({
     upTo: bracket.upTo?.toFixed(2) ?? null,
     rate: bracket.rate.toFixed(2),
   })),
-  employeeCount: row._count.employees,
+  // Employees without a table use the default, so they count towards it.
+  employeeCount: row._count.employees + (row.isDefault ? unassigned : 0),
 });
 
 const toBracketRows = (brackets: TaxTableInput['brackets']) =>
@@ -36,11 +37,14 @@ export class PrismaTaxTablesRepository implements TaxTableRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(): Promise<TaxTable[]> {
-    const rows = await this.prisma.taxTable.findMany({
-      orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
-      ...withBrackets,
-    });
-    return rows.map(toTaxTable);
+    const [rows, unassigned] = await Promise.all([
+      this.prisma.taxTable.findMany({
+        orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+        ...withBrackets,
+      }),
+      this.countUnassignedEmployees(),
+    ]);
+    return rows.map((row) => toTaxTable(row, unassigned));
   }
 
   async findById(id: string): Promise<TaxTable | null> {
@@ -48,7 +52,7 @@ export class PrismaTaxTablesRepository implements TaxTableRepository {
       where: { id },
       ...withBrackets,
     });
-    return row && toTaxTable(row);
+    return row && this.withUnassigned(row);
   }
 
   async findDefault(): Promise<TaxTable | null> {
@@ -56,7 +60,7 @@ export class PrismaTaxTablesRepository implements TaxTableRepository {
       where: { isDefault: true },
       ...withBrackets,
     });
-    return row && toTaxTable(row);
+    return row && this.withUnassigned(row);
   }
 
   async findByName(name: string): Promise<TaxTable | null> {
@@ -64,7 +68,7 @@ export class PrismaTaxTablesRepository implements TaxTableRepository {
       where: { name: { equals: name, mode: 'insensitive' } },
       ...withBrackets,
     });
-    return row && toTaxTable(row);
+    return row && this.withUnassigned(row);
   }
 
   create({ name, brackets }: TaxTableInput): Promise<TaxTable> {
@@ -88,7 +92,7 @@ export class PrismaTaxTablesRepository implements TaxTableRepository {
           ...withBrackets,
         }),
       ]);
-      return toTaxTable(row);
+      return this.withUnassigned(row);
     });
   }
 
@@ -138,6 +142,19 @@ export class PrismaTaxTablesRepository implements TaxTableRepository {
       _max: { rate: true },
     });
     return _max.rate?.toFixed(2) ?? null;
+  }
+
+  private async withUnassigned(row: TaxTableRow): Promise<TaxTable> {
+    return toTaxTable(
+      row,
+      row.isDefault ? await this.countUnassignedEmployees() : 0,
+    );
+  }
+
+  private countUnassignedEmployees(): Promise<number> {
+    return this.prisma.employee.count({
+      where: { taxTableId: null, deletedAt: null },
+    });
   }
 
   // Backstop for the race between the service's name check and the write.

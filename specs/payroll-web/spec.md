@@ -35,10 +35,16 @@ Tax tables                                  [+ New table]
 +------------------------------------------------------+
 Drawer "Edit Standard" / "New tax table":
  Name [Standard            ]
- Up to         Rate %
- [10000.00]    [0     ]   (remove)
- [20000.00]    [10    ]   (remove)
- and above     [15    ]
+ Each rate applies only to the part of the salary inside its bracket. …
+ Bracket 1: from 0.00
+   Up to amount  Tax rate %
+   [10000.00]    [0     ]   (remove)
+ Bracket 2: from 10,000.00
+   Up to amount  Tax rate %
+   [20000.00]    [10    ]   (remove)
+ Bracket 3: above 20,000.00
+   Up to amount  Tax rate %
+   No limit      [15    ]
  [+ Add bracket]
                          [Cancel] [Save]
 ```
@@ -91,6 +97,19 @@ apps/web/src/
 ```
 Money stays a string end to end (input: same salary-style normalisation; display: `formatAmount`).
 
+## Implementation contract (tests and code both follow these names)
+- `react-router-dom` v7 (data routers not required): `app/router.tsx` exports `AppRoutes` (used inside `<BrowserRouter>` in `main.tsx`, and inside `<MemoryRouter initialEntries>` in tests). Routes: `/` → redirect `/employees`; `/employees`; `/settings/tax-tables`; `/settings/social-insurance`; `*` → `NotFoundPage`. The dev-only `/design-system` preview keeps working.
+- `app/app-layout.tsx` → `AppLayout` (sidebar `<nav aria-label="Main">` with `NavLink`s "Employees", "Tax tables", "Social insurance" under a "Settings" heading; mobile menu button named "Open menu"; `<main>` with `<Outlet />`).
+- `shared/ui/tabs/` → `Tabs` (`tabs: { id, label }[]`, `activeId`, `onChange`, children = active panel): WAI-ARIA tabs (`role="tablist"/"tab"/"tabpanel"`, `aria-selected`, arrow keys move between tabs).
+- `features/payroll/api/`
+  - `payroll-api.ts`: `fetchTaxTables()`, `createTaxTable(input)`, `updateTaxTable(id, input)`, `setDefaultTaxTable(id)`, `deleteTaxTable(id)`, `fetchSocialInsurance()`, `updateSocialInsurance(input)`, `fetchPayItems(employeeId)`, `replacePayItems(employeeId, items)`, `fetchPayslip(employeeId, month)`.
+  - `payroll-keys.ts` + hooks: `use-tax-tables.ts`, `use-tax-table-mutations.ts` (create/update/setDefault/delete), `use-social-insurance.ts`, `use-pay-items.ts`, `use-payslip.ts` (`keepPreviousData`). Tax-table mutations also invalidate employee lists (`employeeCount` / names shown in the Pay tab).
+- `features/payroll/components/`: `tax-table-card.tsx`, `tax-table-drawer.tsx` (+ `tax-table-form.tsx` with bracket rows), `social-insurance-form.tsx`, `pay-tab.tsx` (tax table select + `pay-items-editor.tsx`), `payslip-drawer.tsx` (+ `payslip-view.tsx`).
+- `features/payroll/pages/`: `tax-tables-page.tsx`, `social-insurance-page.tsx`.
+- `features/employees`: the edit drawer gains `Tabs` "Details" | "Pay"; the row ⋯ menu gains "Payslip" (active, non-deleted rows) after Edit.
+- `shared/format/month.ts` → `currentMonth(): 'YYYY-MM'` (browser local).
+- Tests mock `features/payroll/api/payroll-api.ts` and `features/employees/api/employees-api.ts` with `vi.mock`; no network.
+
 ## Edge cases (approved 2026-10-09)
 **Navigation**
 1. `/` redirects to `/employees`; unknown paths show a "Page not found" view with a link back. The list's existing query-string state keeps working under `/employees`.
@@ -103,7 +122,7 @@ Money stays a string end to end (input: same salary-style normalisation; display
 6. Set as default updates both cards immediately after success and toasts "Standard is now the default".
 
 **Tax table editor**
-7. New table starts with one open bracket ("and above", rate empty). "Add bracket" inserts a limited row **before** the open one; the open last row can't be removed; the remove button is hidden when only one bracket remains.
+7. New table starts with one open bracket ("No limit", rate empty). Each bracket is a group named by its range ("Bracket 2: from 10,000.00", open one "above <previous limit>") with the same two fields, "Up to amount" and "Tax rate %". "Add bracket" inserts a limited row **before** the open one; the open last row can't be removed; the remove button is hidden when only one bracket remains.
 8. Validation from the shared schema on blur and submit; server errors map to the exact row (`brackets.1.upTo` → second row's Up to).
 9. Rates and limits use the salary-style input (typed separators stripped, formatted on blur). Rates may have 2 decimals.
 10. 422 rate ceiling ("highest bracket rate + insurance rate > 100%") shows as a form alert; 409 duplicate name on the Name field.

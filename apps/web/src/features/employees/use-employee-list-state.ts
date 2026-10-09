@@ -13,7 +13,7 @@ export function useEmployeeListState() {
 
   useEffect(() => {
     const query = toSearchParams(state).toString();
-    window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+    window.history.replaceState(window.history.state, '', query ? `?${query}` : window.location.pathname);
   }, [state]);
 
   // Any change goes back to page 1 unless it sets the page itself.

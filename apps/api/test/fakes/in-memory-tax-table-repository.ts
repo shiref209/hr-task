@@ -113,14 +113,17 @@ export class InMemoryTaxTableRepository implements TaxTableRepository {
     return {
       ...row,
       brackets: row.brackets.map((b) => ({ ...b })),
-      employeeCount: this.countFor(row.id),
+      employeeCount: this.countFor(row),
     };
   }
 
-  private countFor(id: string): number {
+  /** Employees without a table use the default, so they count towards it. */
+  private countFor({ id, isDefault }: TaxTable): number {
     return (
       this.employees?.all.filter(
-        (e) => e.deletedAt === null && e.taxTable?.id === id,
+        (e) =>
+          e.deletedAt === null &&
+          (e.taxTable ? e.taxTable.id === id : isDefault),
       ).length ?? 0
     );
   }

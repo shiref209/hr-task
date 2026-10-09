@@ -60,6 +60,28 @@ describe('TaxTablesService', () => {
       expect(tables.map((t) => t.name)).toEqual(['Zzz', 'Aaa']);
       expect(tables[0].employeeCount).toBe(4);
     });
+
+    it('counts active employees without a table on the default table only', async () => {
+      const other = aTaxTable({ name: 'Aaa' });
+      const standard = aDefaultTaxTable({ name: 'Zzz' });
+      const { service } = setup(
+        [other, standard],
+        [
+          anEmployee({ taxTable: ref(standard) }),
+          anEmployee({ taxTable: null }),
+          anEmployee({ taxTable: null }),
+          anEmployee({ taxTable: null, deletedAt: '2026-01-01T00:00:00.000Z' }),
+          anEmployee({ taxTable: ref(other) }),
+        ],
+      );
+
+      const tables = await service.list();
+
+      expect(tables.map((t) => [t.name, t.employeeCount])).toEqual([
+        ['Zzz', 3],
+        ['Aaa', 1],
+      ]);
+    });
   });
 
   describe('create', () => {

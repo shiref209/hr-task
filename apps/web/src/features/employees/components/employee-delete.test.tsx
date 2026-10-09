@@ -77,13 +77,14 @@ beforeEach(() => {
 });
 
 describe('Employee delete - row menu (edge case 1)', () => {
-  it('lists Edit then Delete on active rows', async () => {
+  it('lists Edit, Payslip, then Delete on active rows', async () => {
     renderPage();
     await screen.findByRole('table');
     await userEvent.click(actionsOf('Ahmed Zaki'));
 
     expect(screen.getAllByRole('menuitem').map((i) => i.textContent)).toEqual([
       'Edit',
+      'Payslip',
       'Delete',
     ]);
   });

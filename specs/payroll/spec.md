@@ -110,7 +110,7 @@ All math in `Decimal`; `round` = half-up to 2 dp. Money in and out as strings.
 4. A single bracket with no limit = a flat tax for everyone (e.g. 0% table for exempt staff).
 5. Table names are unique, case-insensitive (409).
 6. Exactly one default at all times. Making another table default switches atomically. The default can't be deleted (409 "Choose another default first").
-7. Deleting a table assigned to **active (non-deleted)** employees → 409 "Used by N employees". Assignments held only by soft-deleted employees don't block it: the delete clears them in the same transaction, and if such an employee is restored later they use the default table (decided 2026-10-09). `employeeCount` counts non-deleted employees only. Unassigned → 204.
+7. Deleting a table assigned to **active (non-deleted)** employees → 409 "Used by N employees". Assignments held only by soft-deleted employees don't block it: the delete clears them in the same transaction, and if such an employee is restored later they use the default table (decided 2026-10-09). `employeeCount` counts non-deleted employees only; the default table also counts non-deleted employees with no table assigned (they use it). Unassigned → 204.
 8. Changing the default immediately changes payslips of employees without an override (no history).
 8a. `PATCH /employees/:id` with an unknown `taxTableId` → 400 `errors.taxTableId = ['Select a tax table']` (same as an unknown department); `null` clears the override.
 

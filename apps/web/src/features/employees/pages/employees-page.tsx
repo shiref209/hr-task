@@ -6,6 +6,7 @@ import { useDebouncedValue } from '../../../shared/hooks/use-debounced-value';
 import { useDepartments } from '../api/use-departments';
 import { useEmployees } from '../api/use-employees';
 import { useRestoreEmployee } from '../api/use-restore-employee';
+import { PayslipDrawer, type PayslipTarget } from '../../payroll/components/payslip-drawer';
 import { EmployeeDeleteDialog } from '../components/employee-delete-dialog';
 import { EmployeeDrawer, type EmployeeDrawerTarget } from '../components/employee-drawer';
 import { EmployeeFilters } from '../components/employee-filters';
@@ -20,10 +21,12 @@ const SKELETON_ROWS = 5;
 export function EmployeesPage() {
   const [drawer, setDrawer] = useState<EmployeeDrawerTarget | null>(null);
   const [deleting, setDeleting] = useState<Employee | null>(null);
+  const [payslip, setPayslip] = useState<PayslipTarget | null>(null);
   // Decided when the dialog opens, because the refetch removes the row from the list.
   const focusAfterDelete = useRef<string | 'new-employee' | null>(null);
   const newEmployeeButton = useRef<HTMLButtonElement>(null);
   const closeDrawer = useCallback(() => setDrawer(null), []);
+  const closePayslip = useCallback(() => setPayslip(null), []);
   const onCreate = () => setDrawer({ mode: 'create' });
   const onEdit = (employee: Employee) =>
     setDrawer({ mode: 'edit', id: employee.id, name: employee.fullName });
@@ -110,6 +113,7 @@ export function EmployeesPage() {
           busy={employees.isFetching}
           onRestore={onRestore}
           onEdit={onEdit}
+          onPayslip={(employee) => setPayslip({ id: employee.id, name: employee.fullName })}
           onDelete={onDelete}
         />
         <Pagination
@@ -123,7 +127,7 @@ export function EmployeesPage() {
 
   const total = employees.data?.meta.totalItems;
   return (
-    <main className="employees-page">
+    <div className="employees-page">
       <div className="employees-page__header">
         <h1 className="employees-page__title">Employees</h1>
         <Button ref={newEmployeeButton} onClick={onCreate}>New employee</Button>
@@ -147,6 +151,7 @@ export function EmployeesPage() {
         onDeleted={() => setDeleting(null)}
       />
       <EmployeeDrawer target={drawer} onClose={closeDrawer} />
-    </main>
+      <PayslipDrawer target={payslip} onClose={closePayslip} />
+    </div>
   );
 }

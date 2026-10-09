@@ -5,9 +5,10 @@ export interface ServerFormErrors {
   formError?: string;
 }
 
-export function apiErrorToForm({ status, problem }: ApiError): ServerFormErrors {
+/** `conflictField` is the field a 409 (duplicate) belongs to. */
+export function apiErrorToForm({ status, problem }: ApiError, conflictField = 'email'): ServerFormErrors {
   const message = problem.detail ?? problem.title;
-  if (status === 409) return { fieldErrors: { email: message } };
+  if (status === 409) return { fieldErrors: { [conflictField]: message } };
   if (status === 422) return { fieldErrors: {}, formError: message };
   if (status === 400 && problem.errors) {
     const fieldErrors: Record<string, string> = {};

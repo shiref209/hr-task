@@ -1,0 +1,261 @@
+@use '../../shared/theme/breakpoints' as *;
+
+.payroll-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: var(--space-4);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  &__title {
+    font-size: var(--font-size-2xl);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
+.social-insurance-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 24rem;
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__alert,
+  &__alert:focus-visible {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-danger-subtle);
+    color: var(--color-danger);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+}
+
+.tax-table-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__menu {
+    margin-inline-start: auto;
+  }
+
+  &__usage {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  &__brackets {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.tax-table-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  &__hint {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  &__bracket {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__legend {
+    padding: 0;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-3);
+
+    > * {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    > .tax-table-form__remove {
+      flex: 0 0 auto;
+    }
+  }
+
+  &__open-limit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+
+  &__open-limit-value {
+    padding-block: calc(var(--space-2) + var(--border-width));
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-size-md);
+  }
+
+  &__alert {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-danger-subtle);
+    color: var(--color-danger);
+  }
+}
+
+.pay-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  &__alert {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-danger-subtle);
+    color: var(--color-danger);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+}
+
+.pay-items-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  &__title {
+    padding: 0;
+    margin-bottom: var(--space-2);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-2);
+
+    > * {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    > .pay-items-editor__remove {
+      flex: 0 0 auto;
+    }
+  }
+}
+
+.payslip-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  &__message {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-warning-subtle);
+    color: var(--color-warning);
+  }
+}
+
+.payslip-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  &__line {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+
+    &--strong {
+      padding-block: var(--space-2);
+      border-block: var(--border-width) solid var(--color-border);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    &--sub {
+      padding-inline-start: var(--space-4);
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  &__amount {
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__warnings {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-warning-subtle);
+    color: var(--color-warning);
+  }
+}

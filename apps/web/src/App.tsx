@@ -1,5 +1,5 @@
 import { Providers } from './app/providers';
-import { EmployeesPage } from './features/employees/pages/employees-page';
+import { AppRoutes } from './app/router';
 import { DesignSystemPreview } from './shared/ui/preview/design-system-preview';
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
   }
   return (
     <Providers>
-      <EmployeesPage />
+      <AppRoutes />
     </Providers>
   );
 }

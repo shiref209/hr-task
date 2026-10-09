@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useState } from 'react';
 import { toApiError } from '../../../shared/http/http-client';
-import { Button, ConfirmDialog, Drawer, ErrorView, Skeleton, useToast } from '../../../shared/ui';
+import { Button, ConfirmDialog, Drawer, ErrorView, Skeleton, Tabs, useToast } from '../../../shared/ui';
 import { useDepartments } from '../api/use-departments';
 import { useCreateEmployee } from '../api/use-create-employee';
 import { useEmployee } from '../api/use-employee';
@@ -15,8 +15,15 @@ import {
   toFormValues,
   type EmployeeFormValues,
 } from '../form/form-values';
+import { PayTab } from '../../payroll/components/pay-tab';
 import { EmployeeForm } from './employee-form';
 import { EmployeePhoto } from './employee-photo';
+
+type DrawerTab = 'details' | 'pay';
+const TABS = [
+  { id: 'details', label: 'Details' },
+  { id: 'pay', label: 'Pay' },
+];
 
 export type EmployeeDrawerTarget = { mode: 'create' } | { mode: 'edit'; id: string; name: string };
 
@@ -33,9 +40,14 @@ export function EmployeeDrawer({ target, onClose }: EmployeeDrawerProps) {
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const employee = useEmployee(target?.mode === 'edit' ? target.id : undefined);
-  const [dirty, setDirty] = useState(false);
+  const [detailsDirty, setDetailsDirty] = useState(false);
+  const [payDirty, setPayDirty] = useState(false);
+  const [tab, setTab] = useState<DrawerTab>('details');
+  // The Pay tab loads on first visit, then stays mounted so unsaved input survives tab switches.
+  const [payVisited, setPayVisited] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
 
+  const dirty = detailsDirty || payDirty;
   const isSaving = createEmployee.isPending || updateEmployee.isPending;
   const loadedEmployee = employee.data;
   const isEdit = target?.mode === 'edit';
@@ -47,6 +59,19 @@ export function EmployeeDrawer({ target, onClose }: EmployeeDrawerProps) {
     void queryClient.invalidateQueries({ queryKey: employeeKeys.lists });
     onClose();
   }, [notFound, toast, queryClient, onClose]);
+
+  const [previousTarget, setPreviousTarget] = useState(target);
+  if (target !== previousTarget) {
+    setPreviousTarget(target);
+    setTab('details');
+    setPayVisited(false);
+  }
+
+  const selectTab = (id: string) => {
+    const next = id === 'pay' ? 'pay' : 'details';
+    if (next === 'pay') setPayVisited(true);
+    setTab(next);
+  };
 
   const requestClose = () => {
     if (isSaving) return;
@@ -97,7 +122,7 @@ export function EmployeeDrawer({ target, onClose }: EmployeeDrawerProps) {
         </div>
       );
     }
-    return (
+    const details = (
       <>
         {loadedEmployee ? (
           <EmployeePhoto employee={loadedEmployee} />
@@ -111,13 +136,30 @@ export function EmployeeDrawer({ target, onClose }: EmployeeDrawerProps) {
           departments={departments.data ?? []}
           isSaving={isSaving}
           onSubmit={save}
-          onDirtyChange={setDirty}
+          onDirtyChange={setDetailsDirty}
         />
       </>
     );
+    if (!loadedEmployee) return details;
+    return (
+      <Tabs tabs={TABS} activeId={tab} onChange={selectTab}>
+        <div className="employee-drawer__panel" hidden={tab !== 'details'}>
+          {details}
+        </div>
+        {payVisited ? (
+          <div className="employee-drawer__panel" hidden={tab !== 'pay'}>
+            <PayTab
+              employee={loadedEmployee}
+              onDirtyChange={setPayDirty}
+              onSaved={onClose}
+            />
+          </div>
+        ) : null}
+      </Tabs>
+    );
   };
 
-  const canSave = isEdit ? loadedEmployee !== undefined && dirty : true;
+  const canSave = isEdit ? loadedEmployee !== undefined && detailsDirty : true;
   const title = target?.mode === 'edit' ? `Edit ${loadedEmployee?.fullName ?? target.name}` : 'New employee';
 
   return (
@@ -131,9 +173,11 @@ export function EmployeeDrawer({ target, onClose }: EmployeeDrawerProps) {
             <Button variant="secondary" onClick={requestClose}>
               Cancel
             </Button>
-            <Button type="submit" form={formId} disabled={!canSave} isLoading={isSaving}>
-              Save
-            </Button>
+            {isEdit && tab === 'pay' ? null : (
+              <Button type="submit" form={formId} disabled={!canSave} isLoading={isSaving}>
+                Save
+              </Button>
+            )}
           </>
         }
       >
