@@ -11,5 +11,12 @@
     "lint": "pnpm -r lint",
     "typecheck": "pnpm --filter @hr/types build && pnpm -r typecheck",
     "test": "pnpm --filter @hr/types build && pnpm -r test"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "prisma",
+      "@prisma/client",
+      "@prisma/engines"
+    ]
   }
 }
