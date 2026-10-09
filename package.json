@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "pnpm --filter @hr/types build && pnpm -r --parallel dev",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint",
+    "lint": "pnpm --filter @hr/types build && pnpm -r lint",
     "typecheck": "pnpm --filter @hr/types build && pnpm -r typecheck",
     "test": "pnpm --filter @hr/types build && pnpm -r test"
   },
