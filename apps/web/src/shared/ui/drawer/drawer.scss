@@ -1,0 +1,73 @@
+@use '../../theme/breakpoints' as *;
+
+// Base: full-screen sheet. From md: side panel on the inline-end edge.
+.drawer {
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &::backdrop {
+    background: var(--color-overlay);
+  }
+
+  @include up(md) {
+    max-inline-size: var(--size-drawer-max);
+    margin-inline-start: auto;
+    box-shadow: var(--shadow-md);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-block-end: var(--border-width) solid var(--color-border);
+  }
+
+  &__title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__close {
+    padding: var(--space-2);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-background);
+    }
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-block-start: var(--border-width) solid var(--color-border);
+    background: var(--color-surface);
+  }
+}

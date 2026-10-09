@@ -10,7 +10,7 @@ export interface FieldProps {
 
 interface ControlProps {
   id: string;
-  required: boolean | undefined;
+  'aria-required': true | undefined;
   'aria-invalid': true | undefined;
   'aria-describedby': string | undefined;
 }
@@ -40,7 +40,7 @@ export function Field({
       </label>
       {children({
         id,
-        required,
+        'aria-required': required ? true : undefined,
         'aria-invalid': error ? true : undefined,
         'aria-describedby': messageId,
       })}

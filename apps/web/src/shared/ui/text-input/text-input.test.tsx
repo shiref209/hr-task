@@ -31,9 +31,11 @@ describe('TextInput', () => {
     expect(screen.queryByText('Work address')).not.toBeInTheDocument();
   });
 
-  it('shows a required marker and sets required', () => {
+  it('shows a required marker and sets aria-required, not native required', () => {
     render(<TextInput label="Email" required />);
-    expect(screen.getByLabelText(/Email/)).toBeRequired();
+    const input = screen.getByLabelText(/Email/);
+    expect(input).toHaveAttribute('aria-required', 'true');
+    expect(input).not.toHaveAttribute('required');
   });
 
   it('forwards ref to the input', () => {

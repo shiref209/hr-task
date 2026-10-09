@@ -1,8 +1,12 @@
 import { z } from 'zod';
 import { paginationQuerySchema } from '../common/pagination';
 
-export const employeeStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
-export const employeeTypeSchema = z.enum(['HR', 'EMPLOYEE']);
+export const employeeStatusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
+  error: 'Select a status',
+});
+export const employeeTypeSchema = z.enum(['HR', 'EMPLOYEE'], {
+  error: 'Select a type',
+});
 export type EmployeeStatus = z.infer<typeof employeeStatusSchema>;
 export type EmployeeType = z.infer<typeof employeeTypeSchema>;
 
@@ -30,49 +34,58 @@ export const employeeSchema = z.object({
 });
 export type Employee = z.infer<typeof employeeSchema>;
 
-const requiredText = z
-  .string()
-  .trim()
-  .min(1, 'Required')
-  .max(100, 'Must be at most 100 characters');
+const requiredText = (label: string) =>
+  z
+    .string({ error: `${label} is required` })
+    .trim()
+    .min(1, `${label} is required`)
+    .max(100, `${label} must be at most 100 characters`);
 
 const email = z
-  .string()
+  .string({ error: 'Email is required' })
   .trim()
   .toLowerCase()
   .pipe(
-    z.email('Invalid email address').max(254, 'Must be at most 254 characters'),
+    z
+      .email('Enter a valid email address')
+      .max(254, 'Email must be at most 254 characters'),
   );
 
 const E164 = /^\+[1-9]\d{7,14}$/;
 const phone = z
-  .string()
+  .string({
+    error: 'Enter a phone number in international format, e.g. +201001234567',
+  })
   .transform((value) => value.replace(/[\s\-()]/g, ''))
   .refine(
     (value) => value === '' || E164.test(value),
-    'Must be an international number like +201001234567',
+    'Enter a phone number in international format, e.g. +201001234567',
   )
   .transform((value) => value || null)
   .nullable();
 
+const SALARY_MESSAGE = 'Enter an amount greater than 0 with up to 2 decimals';
+
 // Max 10 integer digits + 2 decimals = NUMERIC(12,2); inputs are validated, never rounded.
 const baseSalary = z
-  .string()
-  .regex(
-    /^\d{1,10}(\.\d{1,2})?$/,
-    'Must be a positive amount with at most 2 decimal places',
-  )
-  .refine((value) => /[1-9]/.test(value), 'Must be greater than 0');
+  .string({
+    error: (issue) =>
+      issue.input === undefined
+        ? 'Salary is required'
+        : 'Salary must be sent as a text amount, e.g. "5000.00"',
+  })
+  .regex(/^\d{1,10}(\.\d{1,2})?$/, SALARY_MESSAGE)
+  .refine((value) => /[1-9]/.test(value), SALARY_MESSAGE);
 
 const fields = (today: string) => ({
-  fullName: requiredText,
+  fullName: requiredText('Full name'),
   email,
   phone,
-  jobTitle: requiredText,
-  departmentId: z.uuid('Invalid department id'),
+  jobTitle: requiredText('Job title'),
+  departmentId: z.uuid({ error: 'Select a department' }),
   hireDate: z.iso
-    .date('Must be a real date as YYYY-MM-DD')
-    .refine((date) => date <= today, 'Cannot be in the future')
+    .date({ error: 'Enter a valid date' })
+    .refine((date) => date <= today, "Hire date can't be in the future")
     .describe('Must not be after today in the API time zone (APP_TIMEZONE)'),
   baseSalary,
   status: employeeStatusSchema,

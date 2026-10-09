@@ -114,6 +114,41 @@ apps/web/src/
 - `features/employees/pages/employees-page.tsx`; `src/app/providers.tsx` (`QueryClientProvider` + `ToastProvider`); `App.tsx` renders `EmployeesPage` (preview route unchanged).
 - Tests mock `employees-api.ts` with `vi.mock` — no network, no new mocking library.
 
+## Deep-dive 2 — Form (create & edit drawer)
+
+### Decisions (2026-10-09)
+- **Editable after create:** all fields (uniqueness and last-HR rules still enforced by the API).
+- **Salary input:** text field with `inputMode="decimal"`; HR types `12500.5`, on blur it shows `12,500.50`; typed separators are accepted and stripped; the value sent is the normalized string `12500.50`. Never a JS number.
+- **Profile image:** in the **edit** drawer only (upload needs the id). Create mode shows a hint to add a photo after saving.
+- **Unsaved changes:** closing a dirty drawer asks "Discard unsaved changes?" via `ConfirmDialog`.
+
+### Edge cases (approved 2026-10-09)
+1. "+ New employee" moves to the page header (and stays in the "No employees yet" empty state); it opens the create drawer with focus on Full name. Active rows' ⋯ menu gains **Edit**.
+2. Field order: Full name, Email, Base salary, Job title, Department, Hire date, Phone, Status, Type. Required fields marked. Create defaults: Status Active, Type Employee.
+3. Validation uses the shared schemas (`buildCreateEmployeeSchema` / `buildUpdateEmployeeSchema`): on blur per field and on submit; submit shows every error at once and focuses the first invalid field.
+4. Hire date is a native date input with `max` = today in `VITE_APP_TIMEZONE` (default `Africa/Cairo`, same rule as the API via `todayInTimeZone`).
+5. Salary: `12,500.5` → shown `12,500.50`, sent `12500.50`. Invalid input (e.g. `12.345`, `abc`, `0`) stays as typed with the schema's error.
+6. Phone is optional: empty → `null` (clears it on edit).
+7. Edit opens with the drawer showing a skeleton while `GET /employees/:id` loads. If that returns 404 → toast "This employee no longer exists", drawer closes, list refetches.
+8. Edit sends `PATCH` with **only changed fields**; with no changes, Save is disabled (the API's "Nothing to update" is never hit).
+9. While saving: Save shows loading and is disabled; double submit is impossible; the form keeps its values.
+10. Server errors: 400 field `errors` and 409 (email) appear under the matching field; 422 (last HR) appears as a form-level alert next to Status/Type with the server's detail; anything else → error toast, drawer stays open with the input intact.
+11. Success: toast "Employee created" / "Changes saved", drawer closes, list refetches (and the edit drawer's detail cache updates).
+12. Unsaved guard: Close (✕), Esc and Cancel on a dirty form → "Discard unsaved changes?"; Discard closes, Keep editing returns to the form. Clean form or after a successful save → closes without asking.
+13. Image (edit drawer): avatar preview + "Change photo" (`accept` jpeg/png/webp). Client checks type and ≤ 2 MB before uploading (inline error, no request). Upload happens immediately, independent of Save, with a loading state; success updates the avatar in the drawer and the list; server 413/415 → inline error.
+14. Drawer accessibility: dialog named by its title ("New employee" / "Edit Ahmed Zaki"), focus trapped while open, returns to the trigger on close; full-screen sheet on mobile, side panel from `up(md)`.
+
+### Implementation contract (tests and code both follow these names)
+- `shared/config.ts` → `appTimeZone` (`import.meta.env.VITE_APP_TIMEZONE ?? 'Africa/Cairo'`); add `VITE_APP_TIMEZONE` to `apps/web/.env.example`.
+- `shared/ui/drawer/` → `Drawer({ open, title, onRequestClose, children, footer })`: native `<dialog>` + `showModal`; ✕ button and Esc call `onRequestClose` (the `cancel` event is prevented so the parent decides, e.g. the unsaved guard).
+- `features/employees/api/employees-api.ts` adds `fetchEmployee(id)`, `createEmployee(input)`, `updateEmployee(id, changes)`, `uploadProfileImage(id, file: File)` (multipart field `file`); hooks `use-employee.ts`, `use-create-employee.ts`, `use-update-employee.ts`, `use-upload-profile-image.ts` (all invalidate `employeeKeys.lists`; update/upload also set `employeeKeys.detail(id)` from the response — invalidating `all` would refetch the detail right after it was set and could overwrite it with stale data).
+- `features/employees/form/`
+  - `salary.ts` → `normalizeSalary(input: string): string` (`"12,500.5"` → `"12500.50"`; returns the trimmed input unchanged when it isn't a valid amount, so the schema reports it).
+  - `form-values.ts` → `EmployeeFormValues` (all strings; phone `''` when null), `toFormValues(employee)`, `emptyFormValues`, `toCreateInput(values)`, `changedFields(initial, current): Partial<UpdateEmployeeInput>`.
+  - `api-error-to-form.ts` → `apiErrorToForm(error: ApiError): { fieldErrors: Record<string, string>; formError?: string }` (400 `errors` map → fields; 409 → `email`; 422 → `formError`; else none, caller toasts).
+- `features/employees/components/employee-form.tsx` (pure form: react-hook-form + `zodResolver`), `employee-drawer.tsx` (mode `create` | `edit` + id; loading, mutations, server errors, unsaved guard, toasts), `employee-photo.tsx` (avatar + "Change photo", client type/size check, upload).
+- Page: header "+ New employee"; ⋯ menu on active rows gets **Edit**.
+
 ## To decide in the deep-dives (not yet)
 - **Form:** field order, which fields are editable after create, phone input format help, salary input (currency label? thousands separators?), hire date max = today in which time zone on the client, profile image upload inside the drawer, unsaved-changes guard on close.
 - **Errors & feedback:** which server errors show inline vs toast (409 email, 422 last HR), retry behaviour, optimistic updates or not.

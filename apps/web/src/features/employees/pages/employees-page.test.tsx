@@ -369,9 +369,11 @@ describe('EmployeesPage - empty states', () => {
     listMock.mockResolvedValue(pageOf([]));
     renderPage();
 
-    expect(await screen.findByText('No employees yet')).toBeInTheDocument();
+    const empty = await screen.findByText('No employees yet');
     expect(
-      screen.getByRole('button', { name: /new employee/i }),
+      within(empty.parentElement ?? document.body).getByRole('button', {
+        name: /new employee/i,
+      }),
     ).toBeInTheDocument();
   });
 

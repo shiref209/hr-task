@@ -8,6 +8,13 @@
   margin-inline: auto;
   padding: var(--space-4);
 
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
   &__title {
     font-size: var(--font-size-2xl);
   }
@@ -195,5 +202,47 @@
         text-align: end;
       }
     }
+  }
+}
+
+.employee-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  &__hint {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+}
+
+.employee-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  &__alert {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-danger-subtle);
+    color: var(--color-danger);
+  }
+}
+
+.employee-photo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  &__error {
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
   }
 }

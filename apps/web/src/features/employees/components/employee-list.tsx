@@ -1,6 +1,7 @@
 import type { Employee } from '@hr/types';
 import { formatAmount } from '../../../shared/format/format-amount';
 import { formatDate } from '../../../shared/format/format-date';
+import { resolveAssetUrl } from '../../../shared/http/http-client';
 import { Avatar, Badge } from '../../../shared/ui';
 import { EmployeeRowActions } from './employee-row-actions';
 import { EmployeeStatusBadge } from './employee-status-badge';
@@ -9,10 +10,11 @@ interface EmployeeListProps {
   employees: Employee[];
   busy: boolean;
   onRestore: (employee: Employee) => void;
+  onEdit: (employee: Employee) => void;
 }
 
 // Explicit roles keep table semantics when the mobile styles turn rows into cards (display: block).
-export function EmployeeList({ employees, busy, onRestore }: EmployeeListProps) {
+export function EmployeeList({ employees, busy, onRestore, onEdit }: EmployeeListProps) {
   return (
     <table className="employee-list" aria-busy={busy}>
       <caption className="visually-hidden">Employees</caption>
@@ -31,7 +33,7 @@ export function EmployeeList({ employees, busy, onRestore }: EmployeeListProps) 
           <tr key={employee.id} role="row" className="employee-list__row">
             <td role="cell" className="employee-list__cell employee-list__cell--name">
               <div className="employee-list__person">
-              <Avatar name={employee.fullName} src={employee.profileImageUrl ?? undefined} />
+              <Avatar name={employee.fullName} src={resolveAssetUrl(employee.profileImageUrl)} />
               <div className="employee-list__identity">
                 <span className="employee-list__name">
                   {employee.fullName}
@@ -55,7 +57,7 @@ export function EmployeeList({ employees, busy, onRestore }: EmployeeListProps) 
               <EmployeeStatusBadge status={employee.status} />
             </td>
             <td role="cell" className="employee-list__cell employee-list__cell--actions">
-              <EmployeeRowActions employee={employee} onRestore={onRestore} />
+              <EmployeeRowActions employee={employee} onRestore={onRestore} onEdit={onEdit} />
             </td>
           </tr>
         ))}

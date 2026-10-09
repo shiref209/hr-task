@@ -17,6 +17,14 @@ export const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3000',
 });
 
+/** Uploads are served by the API, not by the web origin; relative paths must be resolved against it. */
+export function resolveAssetUrl(path: string | null): string | undefined {
+  if (path === null) return undefined;
+  if (/^https?:\/\//.test(path)) return path;
+  const base = (http.defaults.baseURL ?? '').replace(/\/+$/, '');
+  return `${base}/${path.replace(/^\/+/, '')}`;
+}
+
 const ABOUT_BLANK = 'about:blank';
 
 function isProblem(value: unknown): value is ProblemDetails {

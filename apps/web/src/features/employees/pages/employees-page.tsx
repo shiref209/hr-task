@@ -1,11 +1,12 @@
 import type { Employee } from '@hr/types';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button, EmptyState, ErrorView, Pagination, Skeleton, useToast } from '../../../shared/ui';
 import { toApiError } from '../../../shared/http/http-client';
 import { useDebouncedValue } from '../../../shared/hooks/use-debounced-value';
 import { useDepartments } from '../api/use-departments';
 import { useEmployees } from '../api/use-employees';
 import { useRestoreEmployee } from '../api/use-restore-employee';
+import { EmployeeDrawer, type EmployeeDrawerTarget } from '../components/employee-drawer';
 import { EmployeeFilters } from '../components/employee-filters';
 import { EmployeeList } from '../components/employee-list';
 import { toListQuery } from '../list-state';
@@ -15,12 +16,12 @@ import '../employees.scss';
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_ROWS = 5;
 
-interface EmployeesPageProps {
-  // TODO(form deep-dive): open the create drawer; a no-op until the drawer exists.
-  onCreate?: () => void;
-}
-
-export function EmployeesPage({ onCreate = () => undefined }: EmployeesPageProps) {
+export function EmployeesPage() {
+  const [drawer, setDrawer] = useState<EmployeeDrawerTarget | null>(null);
+  const closeDrawer = useCallback(() => setDrawer(null), []);
+  const onCreate = () => setDrawer({ mode: 'create' });
+  const onEdit = (employee: Employee) =>
+    setDrawer({ mode: 'edit', id: employee.id, name: employee.fullName });
   const { state, update, reset } = useEmployeeListState();
   const debouncedSearch = useDebouncedValue(state.search, SEARCH_DEBOUNCE_MS);
   const query = toListQuery(state, debouncedSearch);
@@ -82,6 +83,7 @@ export function EmployeesPage({ onCreate = () => undefined }: EmployeesPageProps
           employees={employees.data.items}
           busy={employees.isFetching}
           onRestore={onRestore}
+          onEdit={onEdit}
         />
         <Pagination
           page={employees.data.meta.page}
@@ -95,7 +97,10 @@ export function EmployeesPage({ onCreate = () => undefined }: EmployeesPageProps
   const total = employees.data?.meta.totalItems;
   return (
     <main className="employees-page">
-      <h1 className="employees-page__title">Employees</h1>
+      <div className="employees-page__header">
+        <h1 className="employees-page__title">Employees</h1>
+        <Button onClick={onCreate}>New employee</Button>
+      </div>
       <EmployeeFilters
         state={state}
         departments={departments.data ?? []}
@@ -106,6 +111,7 @@ export function EmployeesPage({ onCreate = () => undefined }: EmployeesPageProps
         {total === undefined ? '' : `${total} ${total === 1 ? 'employee' : 'employees'}`}
       </p>
       {renderBody()}
+      <EmployeeDrawer target={drawer} onClose={closeDrawer} />
     </main>
   );
 }
