@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildCreateEmployeeSchema,
-  buildUpdateEmployeeSchema,
+  createEmployeeSchema,
   employeeListQuerySchema,
+  updateEmployeeSchema,
 } from './employee.schema';
 
-const TODAY = '2026-10-08';
 const DEPARTMENT_ID = '3f2b8c1e-5d4a-4b7e-9c1a-2d3e4f5a6b7c';
 
-const createSchema = buildCreateEmployeeSchema({ today: TODAY });
-const updateSchema = buildUpdateEmployeeSchema({ today: TODAY });
+const createSchema = createEmployeeSchema;
+const updateSchema = updateEmployeeSchema;
 
 function validInput(overrides: Record<string, unknown> = {}) {
   return {
@@ -49,7 +48,7 @@ function createOk(overrides: Record<string, unknown>): boolean {
   return createSchema.safeParse(validInput(overrides)).success;
 }
 
-describe('buildCreateEmployeeSchema', () => {
+describe('createEmployeeSchema', () => {
   it('accepts a minimal valid input and applies status/type defaults', () => {
     const parsed = createSchema.parse(validInput());
 
@@ -211,27 +210,18 @@ describe('buildCreateEmployeeSchema', () => {
   });
 
   describe('hireDate', () => {
-    it('accepts today', () => {
-      expect(createOk({ hireDate: TODAY })).toBe(true);
-    });
-
-    it('accepts yesterday', () => {
+    it('accepts a past date', () => {
       expect(createOk({ hireDate: '2026-10-07' })).toBe(true);
     });
 
-    it('rejects tomorrow', () => {
-      expect(createFails({ hireDate: '2026-10-09' }, 'hireDate')).toBe(true);
+    it('accepts tomorrow (future dates are allowed)', () => {
+      const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      expect(createOk({ hireDate: d.toISOString().slice(0, 10) })).toBe(true);
     });
 
-    it('uses the injected today, not the system clock', () => {
-      const earlier = buildCreateEmployeeSchema({ today: '2020-01-01' });
-
-      expect(
-        earlier.safeParse(validInput({ hireDate: '2020-01-02' })).success,
-      ).toBe(false);
-      expect(
-        earlier.safeParse(validInput({ hireDate: '2020-01-01' })).success,
-      ).toBe(true);
+    it('accepts 2030-06-01 (no upper limit)', () => {
+      expect(createOk({ hireDate: '2030-06-01' })).toBe(true);
     });
 
     it('accepts a leap day in a leap year', () => {
@@ -308,7 +298,7 @@ describe('buildCreateEmployeeSchema', () => {
   });
 });
 
-describe('buildUpdateEmployeeSchema', () => {
+describe('updateEmployeeSchema', () => {
   it('accepts a single field', () => {
     expect(updateSchema.parse({ jobTitle: 'Lead' })).toEqual({
       jobTitle: 'Lead',
@@ -369,11 +359,16 @@ describe('buildUpdateEmployeeSchema', () => {
     );
   });
 
-  it('rejects hireDate tomorrow and accepts today', () => {
-    expect(issuePaths(updateSchema, { hireDate: '2026-10-09' })).toContain(
+  it('accepts a future hireDate', () => {
+    expect(updateSchema.safeParse({ hireDate: '2030-06-01' }).success).toBe(
+      true,
+    );
+  });
+
+  it('rejects a non-existent hireDate', () => {
+    expect(issuePaths(updateSchema, { hireDate: '2026-02-30' })).toContain(
       'hireDate',
     );
-    expect(updateSchema.safeParse({ hireDate: TODAY }).success).toBe(true);
   });
 
   it('rejects status outside the enum', () => {

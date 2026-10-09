@@ -77,48 +77,36 @@ const baseSalary = z
   .regex(/^\d{1,10}(\.\d{1,2})?$/, SALARY_MESSAGE)
   .refine((value) => /[1-9]/.test(value), SALARY_MESSAGE);
 
-const fields = (today: string) => ({
+const fields = {
   fullName: requiredText('Full name'),
   email,
   phone,
   jobTitle: requiredText('Job title'),
   departmentId: z.uuid({ error: 'Select a department' }),
-  hireDate: z.iso
-    .date({ error: 'Enter a valid date' })
-    .refine((date) => date <= today, "Hire date can't be in the future")
-    .describe('Must not be after today in the API time zone (APP_TIMEZONE)'),
+  hireDate: z.iso.date({ error: 'Enter a valid date' }),
   baseSalary,
   status: employeeStatusSchema,
   type: employeeTypeSchema,
+};
+
+export const createEmployeeSchema = z.strictObject({
+  ...fields,
+  phone: fields.phone.default(null),
+  status: fields.status.default('ACTIVE'),
+  type: fields.type.default('EMPLOYEE'),
 });
+export type CreateEmployeeInput = z.output<typeof createEmployeeSchema>;
 
-export function buildCreateEmployeeSchema({ today }: { today: string }) {
-  const shape = fields(today);
-  return z.strictObject({
-    ...shape,
-    phone: shape.phone.default(null),
-    status: shape.status.default('ACTIVE'),
-    type: shape.type.default('EMPLOYEE'),
+export const updateEmployeeSchema = z
+  .strictObject(fields)
+  .partial()
+  .refine((changes) => Object.keys(changes).length > 0, {
+    message: 'Nothing to update',
+    path: [],
+    // an unknown key already explains why the body is unusable
+    when: ({ issues }) => issues.length === 0,
   });
-}
-export type CreateEmployeeInput = z.output<
-  ReturnType<typeof buildCreateEmployeeSchema>
->;
-
-export function buildUpdateEmployeeSchema({ today }: { today: string }) {
-  return z
-    .strictObject(fields(today))
-    .partial()
-    .refine((changes) => Object.keys(changes).length > 0, {
-      message: 'Nothing to update',
-      path: [],
-      // an unknown key already explains why the body is unusable
-      when: ({ issues }) => issues.length === 0,
-    });
-}
-export type UpdateEmployeeInput = z.output<
-  ReturnType<typeof buildUpdateEmployeeSchema>
->;
+export type UpdateEmployeeInput = z.output<typeof updateEmployeeSchema>;
 
 export const employeeListQuerySchema = paginationQuerySchema.extend({
   search: z

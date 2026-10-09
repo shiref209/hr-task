@@ -66,9 +66,7 @@ describe('Employees (e2e)', () => {
       .overrideProvider(FILE_STORAGE)
       .useValue(storage)
       .overrideProvider(CLOCK)
-      .useValue(
-        new FixedClock(new Date('2026-10-08T10:00:00.000Z'), '2026-10-08'),
-      )
+      .useValue(new FixedClock(new Date('2026-10-08T10:00:00.000Z')))
       .compile();
     app = moduleRef.createNestApplication();
     configureApp(app);
@@ -136,15 +134,13 @@ describe('Employees (e2e)', () => {
       expect(res.body.errors).toHaveProperty('baseSalary');
     });
 
-    it('returns 400 for a hire date after today in the app time zone', async () => {
+    it('accepts a future hire date (201)', async () => {
       await boot();
 
-      const res = await http()
+      await http()
         .post('/employees')
-        .send(validBody({ hireDate: '2026-10-09' }))
-        .expect(400);
-
-      expect(res.body.errors).toHaveProperty('hireDate');
+        .send(validBody({ hireDate: '2030-06-01' }))
+        .expect(201);
     });
 
     it('accepts a hire date equal to today', async () => {
@@ -154,6 +150,17 @@ describe('Employees (e2e)', () => {
         .post('/employees')
         .send(validBody({ hireDate: '2026-10-08' }))
         .expect(201);
+    });
+
+    it('returns 400 for a non-existent hire date', async () => {
+      await boot();
+
+      const res = await http()
+        .post('/employees')
+        .send(validBody({ hireDate: '2026-02-30' }))
+        .expect(400);
+
+      expect(res.body.errors).toHaveProperty('hireDate');
     });
 
     it('returns 400 on departmentId for an unknown department', async () => {

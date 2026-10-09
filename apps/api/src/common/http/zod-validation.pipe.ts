@@ -7,13 +7,10 @@ export class ZodValidationPipe<S extends z.ZodType> implements PipeTransform<
   unknown,
   z.output<S>
 > {
-  // A factory lets schemas depend on per-request state (e.g. today's date).
-  constructor(private readonly schema: S | (() => S)) {}
+  constructor(private readonly schema: S) {}
 
   transform(value: unknown, _metadata: ArgumentMetadata): z.output<S> {
-    const schema =
-      typeof this.schema === 'function' ? this.schema() : this.schema;
-    const result = schema.safeParse(value);
+    const result = this.schema.safeParse(value);
     if (result.success) return result.data;
     throw new ValidationError(toErrorMap(result.error.issues));
   }

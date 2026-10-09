@@ -1,8 +1,7 @@
-import { todayInTimeZone, type Department } from '@hr/types';
+import type { Department } from '@hr/types';
 import { useEffect, useRef, useState } from 'react';
 import { useForm, useWatch, type Path } from 'react-hook-form';
 import { formatAmount } from '../../../shared/format/format-amount';
-import { appTimeZone } from '../../../shared/config';
 import { SelectInput, TextInput } from '../../../shared/ui';
 import type { ServerFormErrors } from '../form/api-error-to-form';
 import { employeeResolver } from '../form/employee-resolver';
@@ -39,10 +38,9 @@ export function EmployeeForm({
   onSubmit,
   onDirtyChange,
 }: EmployeeFormProps) {
-  const [today] = useState(() => todayInTimeZone(appTimeZone));
   const [formError, setFormError] = useState<string>();
   const alertRef = useRef<HTMLParagraphElement>(null);
-  const [resolver] = useState(() => employeeResolver(mode, today));
+  const [resolver] = useState(() => employeeResolver(mode));
   const {
     register,
     control,
@@ -111,7 +109,6 @@ export function EmployeeForm({
       <TextInput
         label="Hire date"
         type="date"
-        max={today}
         required
         error={errors.hireDate?.message}
         {...register('hireDate')}

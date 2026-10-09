@@ -72,7 +72,7 @@ apps/web/src/
     employees.scss
   app/                   QueryClientProvider + ToastProvider; App renders EmployeesPage
 ```
-- Form: react-hook-form + `zodResolver(buildCreateEmployeeSchema({ today }))` / update schema; server `errors` map → `setError` per field; anything else → error toast.
+- Form: react-hook-form + `zodResolver(createEmployeeSchema)` / `updateEmployeeSchema`; server `errors` map → `setError` per field; anything else → error toast.
 - Every query view renders loading (Skeleton), error (retry), empty (EmptyState), success.
 - No router yet: a single page. Drawer/dialog state lives in the page.
 
@@ -125,8 +125,8 @@ apps/web/src/
 ### Edge cases (approved 2026-10-09)
 1. "+ New employee" moves to the page header (and stays in the "No employees yet" empty state); it opens the create drawer with focus on Full name. Active rows' ⋯ menu gains **Edit**.
 2. Field order: Full name, Email, Base salary, Job title, Department, Hire date, Phone, Status, Type. Required fields marked. Create defaults: Status Active, Type Employee.
-3. Validation uses the shared schemas (`buildCreateEmployeeSchema` / `buildUpdateEmployeeSchema`): on blur per field and on submit; submit shows every error at once and focuses the first invalid field.
-4. Hire date is a native date input with `max` = today in `VITE_APP_TIMEZONE` (default `Africa/Cairo`, same rule as the API via `todayInTimeZone`).
+3. Validation uses the shared schemas (`createEmployeeSchema` / `updateEmployeeSchema`): on blur per field and on submit; submit shows every error at once and focuses the first invalid field.
+4. Hire date is a native date input with no `max` — future dates are allowed (changed 2026-10-09: future hire dates allowed for planned joiners; no upper limit).
 5. Salary: `12,500.5` → shown `12,500.50`, sent `12500.50`. Invalid input (e.g. `12.345`, `abc`, `0`) stays as typed with the schema's error.
 6. Phone is optional: empty → `null` (clears it on edit).
 7. Edit opens with the drawer showing a skeleton while `GET /employees/:id` loads. If that returns 404 → toast "This employee no longer exists", drawer closes, list refetches.
@@ -139,7 +139,6 @@ apps/web/src/
 14. Drawer accessibility: dialog named by its title ("New employee" / "Edit Ahmed Zaki"), focus trapped while open, returns to the trigger on close; full-screen sheet on mobile, side panel from `up(md)`.
 
 ### Implementation contract (tests and code both follow these names)
-- `shared/config.ts` → `appTimeZone` (`import.meta.env.VITE_APP_TIMEZONE ?? 'Africa/Cairo'`); add `VITE_APP_TIMEZONE` to `apps/web/.env.example`.
 - `shared/ui/drawer/` → `Drawer({ open, title, onRequestClose, children, footer })`: native `<dialog>` + `showModal`; ✕ button and Esc call `onRequestClose` (the `cancel` event is prevented so the parent decides, e.g. the unsaved guard).
 - `features/employees/api/employees-api.ts` adds `fetchEmployee(id)`, `createEmployee(input)`, `updateEmployee(id, changes)`, `uploadProfileImage(id, file: File)` (multipart field `file`); hooks `use-employee.ts`, `use-create-employee.ts`, `use-update-employee.ts`, `use-upload-profile-image.ts` (all invalidate `employeeKeys.lists`; update/upload also set `employeeKeys.detail(id)` from the response — invalidating `all` would refetch the detail right after it was set and could overwrite it with stale data).
 - `features/employees/form/`

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { CLOCK, SystemClock } from '../common/clock';
 import { appConfig } from '../common/config';
 import { DepartmentsModule } from '../departments/departments.module';
-import { CreateEmployeePipe, UpdateEmployeePipe } from './employee-input.pipes';
 import { EmployeesController } from './employees.controller';
 import { EMPLOYEE_REPOSITORY } from './employees.repository';
 import { EmployeesService } from './employees.service';
@@ -15,8 +14,6 @@ import { LocalFileStorage } from './profile-image/local-file-storage';
   controllers: [EmployeesController],
   providers: [
     EmployeesService,
-    CreateEmployeePipe,
-    UpdateEmployeePipe,
     { provide: CLOCK, useClass: SystemClock },
     { provide: EMPLOYEE_REPOSITORY, useClass: PrismaEmployeesRepository },
     {

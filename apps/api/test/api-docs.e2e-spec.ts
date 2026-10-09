@@ -44,9 +44,7 @@ async function boot(swaggerEnabled: boolean): Promise<INestApplication> {
     .overrideProvider(FILE_STORAGE)
     .useValue(new InMemoryFileStorage())
     .overrideProvider(CLOCK)
-    .useValue(
-      new FixedClock(new Date('2026-10-08T10:00:00.000Z'), '2026-10-08'),
-    )
+    .useValue(new FixedClock(new Date('2026-10-08T10:00:00.000Z')))
     .compile();
   const app = moduleRef.createNestApplication();
   configureApp(app);
@@ -184,10 +182,6 @@ describe('API docs (e2e)', () => {
     it('documents status and type as enums', () => {
       expect(Array.isArray(at(prop('status'), 'enum'))).toBe(true);
       expect(Array.isArray(at(prop('type'), 'enum'))).toBe(true);
-    });
-
-    it('notes the hire-date-not-after-today rule', () => {
-      expect(JSON.stringify(prop('hireDate'))).toMatch(/today/i);
     });
   });
 

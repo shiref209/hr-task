@@ -2,7 +2,7 @@ import { ProblemType, type Employee } from '@hr/types';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, http } from '../../../shared/http/http-client';
 import { ToastProvider } from '../../../shared/ui';
 import {
@@ -90,10 +90,6 @@ beforeEach(() => {
   detailMock.mockResolvedValue(existing);
   createMock.mockResolvedValue(anEmployee(2));
   updateMock.mockResolvedValue(existing);
-});
-
-afterEach(() => {
-  vi.useRealTimers();
 });
 
 describe('Employee drawer - opening (edge cases 1, 2, 14)', () => {
@@ -231,24 +227,12 @@ describe('Employee drawer - validation (edge cases 3, 4, 5, 6)', () => {
     await waitFor(() => expect(field(dialog, 'Email')).toHaveFocus());
   });
 
-  it('sets the hire date max to today in the app time zone (Cairo is already on the next day)', async () => {
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(new Date('2026-10-08T22:30:00Z'));
+  it('hire date input has no max', async () => {
     renderPage();
     const dialog = await openCreate();
 
     expect(field(dialog, 'Hire date')).toHaveAttribute('type', 'date');
-    expect(field(dialog, 'Hire date')).toHaveAttribute('max', '2026-10-09');
-  });
-
-  it('rejects a hire date after today', async () => {
-    renderPage();
-    const dialog = await openCreate();
-
-    fireEvent.change(field(dialog, 'Hire date'), { target: { value: '2999-01-01' } });
-    fireEvent.blur(field(dialog, 'Hire date'));
-
-    expect(await within(dialog).findByText(/future/i)).toBeInTheDocument();
+    expect(field(dialog, 'Hire date')).not.toHaveAttribute('max');
   });
 
   it('formats the salary on blur and keeps the number out of the input as a JS number', async () => {
@@ -312,6 +296,18 @@ describe('Employee drawer - create (edge cases 5, 6, 9, 10, 11)', () => {
       status: 'ACTIVE',
       type: 'EMPLOYEE',
     });
+  });
+
+  it('a future hire date can be saved (sent to createEmployee)', async () => {
+    renderPage();
+    const dialog = await openCreate();
+    await fillValidCreate(dialog);
+    fireEvent.change(field(dialog, 'Hire date'), { target: { value: '2030-06-01' } });
+
+    await userEvent.click(save(dialog));
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledOnce());
+    expect(createMock.mock.calls[0]?.[0]).toMatchObject({ hireDate: '2030-06-01' });
   });
 
   it('sends a typed phone as is', async () => {

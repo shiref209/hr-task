@@ -74,7 +74,7 @@ specs/<feature>/  the approved spec each feature was built from
 - **One contract, two apps.** Validation rules exist once, as Zod schemas in `@hr/types`. The API enforces them (never trusting the client), the web form reuses them, and the OpenAPI docs are generated from them — so the three cannot drift.
 - **One response shape.** Success is always `{ data, meta? }`; every error is RFC 7807 `application/problem+json` from a single global filter. Handlers throw small domain errors (`NotFoundError`, `ConflictError`, …) and contain no `try/catch`.
 - **Money is never a float.** Stored as `NUMERIC(12,2)`, handled as `Decimal`, sent as strings (`"5000.00"`); the API rejects numeric JSON for money.
-- **Time is injected.** "Today" comes from a `Clock` in `APP_TIMEZONE`, so the hire-date rule is deterministic in tests and correct for users ahead of UTC.
+- **Time is injected.** Timestamps such as `deletedAt` come from a `Clock`, so tests are deterministic.
 - **Design tokens only.** Colours, type, spacing, radii and motion are CSS custom properties; components are mobile first, flexbox + `gap`, with no fixed container sizes.
 
 ### How features are built
@@ -87,7 +87,7 @@ Every feature follows the same gate (written in [`CLAUDE.md`](CLAUDE.md)): **spe
 - HR is the admin role. The last *active, non-deleted* HR cannot be deleted, deactivated or demoted (422).
 - Delete is **soft**; an email stays unique forever, so re-hiring someone means restoring their record.
 - Email is case-insensitive (stored lowercased). Phone is optional, E.164 (`+201001234567`); spaces and dashes are stripped.
-- Hire date may be today but not later, judged in `APP_TIMEZONE` (default `Africa/Cairo`).
+- Hire date may be in the past or the future (planned joiners); it must be a real calendar date. A future hire can be Active — payroll will refuse months before the hire date.
 - Base salary is > 0 with at most 2 decimals; input is never rounded.
 - Departments are a seeded, read-only list.
 - Profile images: JPEG/PNG/WebP detected from the file's bytes (not its name), max 2 MB, stored on local disk.

@@ -17,7 +17,6 @@ Every endpoint is documented in OpenAPI 3, browsable in Swagger UI, and exportab
   - `openapi.ts` → `buildOpenApiDocument(app: INestApplication): OpenAPIObject` (title "HR Payroll API", version from package.json) and `setupSwagger(app, { enabled }: { enabled: boolean })` (mounts `/docs` + `/docs-json` only when enabled; `main.ts` passes `appConfig.SWAGGER_ENABLED`).
   - `zod-openapi.ts` → small helpers turning a Zod schema into decorator options: `apiBody(schema)`, `apiEnvelope(schema, { paginated? })`, `apiProblems(...statuses)`, `apiQuery(schema)`. Input schemas use `z.toJSONSchema(schema, { io: 'input' })`, responses `{ io: 'output' }`.
   - `export-openapi.ts` → script entry: builds the app with repository/storage tokens overridden by no-op stubs (no DB connect), writes `docs/openapi.json` (pretty-printed, stable key order), exits.
-- Schemas whose rules depend on "today" are documented via `buildCreateEmployeeSchema({ today: 'YYYY-MM-DD' })` with a description noting hire date must not be after today in `APP_TIMEZONE`.
 - The shared error shape gets a Zod source of truth: `errorDetailsSchema` in `types/src/common/problem-details.ts` (the `ProblemDetails` type becomes `z.infer` of it) so the docs component is generated, not hand-written.
 - Controllers gain only decorators (`@ApiTags`, the helpers above); no logic changes.
 

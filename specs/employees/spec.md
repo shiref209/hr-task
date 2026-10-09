@@ -14,7 +14,7 @@ HR manages employee records: create, list (paginated, searchable, filterable), v
 | phone | string \| null | **optional**; E.164 (`+` then 8–15 digits, first digit 1–9); spaces/dashes/parentheses stripped before validating; empty string → null |
 | jobTitle | string | required, trimmed, 1–100 |
 | departmentId | uuid | required, must reference an existing department (unknown → 400 on `departmentId`) |
-| hireDate | date (`YYYY-MM-DD`) | required, **not after today in `APP_TIMEZONE`** (env, default `Africa/Cairo`); real calendar date (`2026-02-30` → 400) |
+| hireDate | date (`YYYY-MM-DD`) | required, a real calendar date (`2026-02-30` → 400); **may be in the future** (changed 2026-10-09: future hire dates allowed for planned joiners; no upper limit) |
 | baseSalary | Decimal `NUMERIC(12,2)`, string in JSON | required, **> 0**, max 2 decimal places, ≤ 9,999,999,999.99 |
 | status | `ACTIVE` \| `INACTIVE` | default `ACTIVE` |
 | type | `HR` \| `EMPLOYEE` | default `EMPLOYEE` (HR = admin) |
@@ -67,20 +67,19 @@ No `domain/` folder here: employees has no pure business-rule engine (the last-H
 
 ## Implementation contract (tests and code both follow these names)
 
-**`types/src/employees/employee.schema.ts`** (re-exported from `types/src/index.ts`; also `todayInTimeZone` from `types/src/common/dates.ts`)
+**`types/src/employees/employee.schema.ts`** (re-exported from `types/src/index.ts`)
 - `employeeStatusSchema` = `z.enum(['ACTIVE','INACTIVE'])`, `employeeTypeSchema` = `z.enum(['HR','EMPLOYEE'])`; types `EmployeeStatus`, `EmployeeType`.
 - `departmentSchema` `{ id, name }` → `Department`.
 - `employeeSchema` (response shape) → `Employee`: `id, fullName, email, phone: string|null, jobTitle, department: Department, hireDate: 'YYYY-MM-DD', baseSalary: string ('5000.00'), status, type, profileImageUrl: string|null, deletedAt: string|null (ISO), createdAt, updatedAt (ISO)`.
-- `buildCreateEmployeeSchema({ today }: { today: string })` → strict object; `CreateEmployeeInput = z.output<…>`. `today` is `YYYY-MM-DD`; hire date must be ≤ it. The schema takes `today` instead of reading a clock, so it stays pure and the web form and API share one rule.
-- `buildUpdateEmployeeSchema({ today })` → strict, every field optional, `phone` may be `null` (clears it); `{}` → issue at `_root` "Nothing to update". `UpdateEmployeeInput`.
+- `createEmployeeSchema` → strict object; `CreateEmployeeInput = z.output<…>`.
+- `updateEmployeeSchema` → strict, every field optional, `phone` may be `null` (clears it); `{}` → issue at `_root` "Nothing to update". `UpdateEmployeeInput`.
 - `employeeListQuerySchema` = `paginationQuerySchema` + `search?` (trimmed, max 100, empty → undefined), `departmentId?` uuid, `status?`, `type?`, `deleted` (`'true'|'false'` → boolean, default false). Query objects **strip** unknown params (bodies are strict). `EmployeeListQuery`.
 - `idParamSchema` = `{ id: z.uuid() }` (in `types/src/common/`).
-- `todayInTimeZone(timeZone: string, now?: Date): string` → `YYYY-MM-DD` via `Intl.DateTimeFormat`.
 
 **API common additions**
 - `ZodValidationPipe` constructor also accepts a **factory** `() => ZodType` (evaluated per `transform` call).
-- `common/clock.ts`: `interface Clock { now(): Date; today(): string }`, token `CLOCK`, `SystemClock` (uses `APP_TIMEZONE`).
-- `common/config.ts`: `appConfig` = Zod-validated env (`APP_TIMEZONE` default `Africa/Cairo`, `UPLOADS_DIR` default `uploads`); invalid env fails fast at startup.
+- `common/clock.ts`: `interface Clock { now(): Date }`, token `CLOCK`, `SystemClock` (used for `deletedAt`).
+- `common/config.ts`: `appConfig` = Zod-validated env (`UPLOADS_DIR` default `uploads`); invalid env fails fast at startup.
 - `domain-errors.ts` gains `UnsupportedMediaTypeError` → 415 (`ProblemType.unsupportedMediaType`).
 
 **`apps/api/src/departments/`**
@@ -117,7 +116,7 @@ No `domain/` folder here: employees has no pure business-rule engine (the last-H
 ## Edge cases (proposed — confirm)
 1. Email uniqueness is case-insensitive: `A@x.com` after `a@x.com` → 409.
 2. `PATCH` with a body containing an email already used by **another** employee → 409; the employee's own email → OK.
-3. Hire date **today** is valid; tomorrow → 400.
+3. Hire date today and in the future are valid (changed 2026-10-09: future hire dates allowed for planned joiners; no upper limit).
 4. `baseSalary: "0"` → 400; `"0.01"` → OK; `"10.005"` → 400 (no rounding of input); numeric JSON `5000` → 400 (money must be a string).
 5. Names are trimmed; whitespace-only → 400; exactly 100 chars OK, 101 → 400.
 6. Malformed id (`/employees/abc`) → 400; well-formed but missing → 404.
@@ -129,7 +128,7 @@ No `domain/` folder here: employees has no pure business-rule engine (the last-H
 12. Deleting an already-deleted employee → 404. Restoring a non-deleted employee → 409.
 13. Last-HR guard: with exactly one active HR, delete / set INACTIVE / set type EMPLOYEE → 422; with two, the first succeeds and the second → 422. An INACTIVE HR doesn't count as an admin.
 14. Phone: `"+20 100 123 4567"` → stored `+201001234567`; `"01001234567"` (no `+`) → 400; `""` → null; `"+0123…"` → 400.
-15. Hire date `2024-02-29` OK (leap year), `2026-02-29` → 400; "today" computed in `APP_TIMEZONE`.
+15. Hire date `2024-02-29` OK (leap year), `2026-02-29` → 400.
 16. `departmentId` well-formed but unknown → 400 with `errors.departmentId`.
 
 ## Boundaries

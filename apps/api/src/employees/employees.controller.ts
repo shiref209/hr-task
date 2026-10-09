@@ -20,8 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
-  buildCreateEmployeeSchema,
-  buildUpdateEmployeeSchema,
+  createEmployeeSchema,
   employeeListQuerySchema,
   employeeSchema,
   idParamSchema,
@@ -29,6 +28,7 @@ import {
   type Employee,
   type EmployeeListQuery,
   type UpdateEmployeeInput,
+  updateEmployeeSchema,
 } from '@hr/types';
 import {
   apiBody,
@@ -40,15 +40,9 @@ import {
 import { ValidationError } from '../common/errors/domain-errors';
 import { PaginatedResult } from '../common/http/paginated-result';
 import { ZodValidationPipe } from '../common/http/zod-validation.pipe';
-import { CreateEmployeePipe, UpdateEmployeePipe } from './employee-input.pipes';
 import { EmployeesService, type UploadedImage } from './employees.service';
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-
-// "today" only feeds a refinement that JSON Schema cannot express, so any date documents the same shape.
-const DOCS_TODAY = '2000-01-01';
-const createBody = buildCreateEmployeeSchema({ today: DOCS_TODAY });
-const updateBody = buildUpdateEmployeeSchema({ today: DOCS_TODAY });
 
 const IdParam = () => Param(new ZodValidationPipe(idParamSchema));
 type IdParam = { id: string };
@@ -60,11 +54,12 @@ export class EmployeesController {
 
   @Post()
   @ApiOperation({ summary: 'Create an employee' })
-  @apiBody(createBody)
+  @apiBody(createEmployeeSchema)
   @apiEnvelope(employeeSchema, { status: 201 })
   @apiProblems(400, 409)
   create(
-    @Body(CreateEmployeePipe) input: CreateEmployeeInput,
+    @Body(new ZodValidationPipe(createEmployeeSchema))
+    input: CreateEmployeeInput,
   ): Promise<Employee> {
     return this.employees.create(input);
   }
@@ -95,12 +90,13 @@ export class EmployeesController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update an employee (partial)' })
   @apiIdParam()
-  @apiBody(updateBody)
+  @apiBody(updateEmployeeSchema)
   @apiEnvelope(employeeSchema)
   @apiProblems(400, 404, 409, 422)
   update(
     @IdParam() { id }: IdParam,
-    @Body(UpdateEmployeePipe) changes: UpdateEmployeeInput,
+    @Body(new ZodValidationPipe(updateEmployeeSchema))
+    changes: UpdateEmployeeInput,
   ): Promise<Employee> {
     return this.employees.update(id, changes);
   }
