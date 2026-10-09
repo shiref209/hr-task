@@ -16,6 +16,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { authUserSchema, loginSchema, type LoginInput } from '@hr/types';
+import { LoginThrottlerGuard } from './login-throttler.guard';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../common/http/zod-validation.pipe';
@@ -28,7 +29,6 @@ import {
 } from './auth-cookies';
 import type { AuthPrincipal } from './auth-principal';
 import { ClearCookiesOnErrorInterceptor } from './clear-cookies-on-error.interceptor';
-import { LoginThrottlerGuard } from './login-throttler.guard';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
 import { Public } from './public.decorator';

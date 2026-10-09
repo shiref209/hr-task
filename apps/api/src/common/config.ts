@@ -16,6 +16,11 @@ export const envSchema = z
       .transform((value) => value === 'true')
       .optional(),
     LOGIN_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(5),
+    LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(20),
   })
   .transform((env) => ({
     ...env,

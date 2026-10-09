@@ -151,13 +151,13 @@ describe('AuthService', () => {
       expect(tokens.all).toHaveLength(2);
     });
 
-    it("purges the user's expired and revoked rows on login, keeping live rows and other users' rows", async () => {
+    it("purges only the user's expired rows on login, keeping live and revoked rows and other users' rows", async () => {
       const mine = aHr();
       const other = aHr({ email: 'other@hr.com' });
       const { service, tokens } = await setup([mine, other]);
       const live = await service.login('test@hr.com', PASSWORD);
       const rotatedAway = await service.login('test@hr.com', PASSWORD);
-      await service.refresh(rotatedAway.refreshToken); // leaves a revoked row
+      const replacement = await service.refresh(rotatedAway.refreshToken); // leaves a revoked row
       await tokens.create({
         userId: mine.id,
         tokenHash: sha256('expired-one'),
@@ -177,15 +177,35 @@ describe('AuthService', () => {
         .filter((r) => r.userId === mine.id)
         .map((r) => r.tokenHash)
         .sort();
-      // `live`, the rotation's replacement row, and the new login survive; expired + revoked are gone.
-      expect(mineLeft).toHaveLength(3);
+      // Only the expired row goes; the revoked one stays so its reuse can still be detected.
+      expect(mineLeft).toHaveLength(4);
+      expect(mineLeft).toContain(sha256(replacement.refreshToken));
+      expect(mineLeft).toContain(sha256(rotatedAway.refreshToken));
       expect(mineLeft).toContain(sha256(live.refreshToken));
       expect(mineLeft).toContain(sha256(fresh.refreshToken));
       expect(mineLeft).not.toContain(sha256('expired-one'));
-      expect(mineLeft).not.toContain(sha256(rotatedAway.refreshToken));
       expect(
         tokens.all.some((r) => r.tokenHash === sha256('others-expired')),
       ).toBe(true);
+    });
+
+    it('still detects reuse of a rotated token after a later login purged expired rows', async () => {
+      const { service, tokens } = await setup([aHr()]);
+      const first = await service.login('test@hr.com', PASSWORD);
+      const second = await service.refresh(first.refreshToken); // token1 revoked
+      const third = await service.login('test@hr.com', PASSWORD); // purge runs
+
+      await expect(service.refresh(first.refreshToken)).rejects.toBeInstanceOf(
+        SessionExpiredError,
+      );
+
+      expect(tokens.all.every((r) => r.revokedAt !== null)).toBe(true);
+      await expect(service.refresh(second.refreshToken)).rejects.toBeInstanceOf(
+        SessionExpiredError,
+      );
+      await expect(service.refresh(third.refreshToken)).rejects.toBeInstanceOf(
+        SessionExpiredError,
+      );
     });
 
     it.each([

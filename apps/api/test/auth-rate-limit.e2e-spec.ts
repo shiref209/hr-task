@@ -1,5 +1,6 @@
 // Must precede any app import: appConfig is parsed when the module graph loads.
 process.env.LOGIN_RATE_LIMIT_PER_MINUTE = '5';
+process.env.LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE = '8';
 
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -84,5 +85,16 @@ describe('POST /auth/login rate limit (e2e)', () => {
     for (let i = 0; i < 5; i += 1) await attempt('test@hr.com').expect(401);
 
     await attempt('  TEST@HR.COM ').expect(429);
+  });
+
+  it('returns 429 with Retry-After once one IP exceeds the per-IP limit across many emails', async () => {
+    for (let i = 0; i < 8; i += 1) await attempt(`user${i}@hr.com`).expect(401);
+
+    const res = await attempt('user8@hr.com');
+
+    expect(res.status).toBe(429);
+    expect(res.headers['content-type']).toContain('application/problem+json');
+    expect(res.body).toMatchObject({ type: '/problems/too-many-requests' });
+    expect(Number(res.headers['retry-after'])).toBeGreaterThan(0);
   });
 });

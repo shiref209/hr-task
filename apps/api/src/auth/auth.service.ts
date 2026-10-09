@@ -59,7 +59,7 @@ export class AuthService {
     if (!account || !matches || !canSignIn(account))
       throw new InvalidCredentialsError();
     const now = this.clock.now();
-    await this.refreshTokens.deleteExpiredAndRevoked(account.id, now);
+    await this.refreshTokens.deleteExpired(account.id, now);
     return this.startSession(account, now);
   }
 

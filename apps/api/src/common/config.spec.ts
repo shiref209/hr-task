@@ -94,4 +94,28 @@ describe('envSchema', () => {
       expect(parse({ LOGIN_RATE_LIMIT_PER_MINUTE: value }).success).toBe(false);
     });
   });
+
+  describe('LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE', () => {
+    it('defaults to 20', () => {
+      const result = parse({});
+
+      expect(
+        result.success && result.data.LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE,
+      ).toBe(20);
+    });
+
+    it('accepts a positive integer', () => {
+      const result = parse({ LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE: '1000' });
+
+      expect(
+        result.success && result.data.LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE,
+      ).toBe(1000);
+    });
+
+    it.each(['0', '-3', 'abc', '2.5', ''])('rejects %j', (value) => {
+      expect(parse({ LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE: value }).success).toBe(
+        false,
+      );
+    });
+  });
 });

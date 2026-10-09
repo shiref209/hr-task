@@ -68,11 +68,28 @@ The employee-facing employee shape is a separate shared type `EmployeeSummary` (
 - **Rotation is atomic:** `revoke` only succeeds on a not-yet-revoked row (`updateMany … where revokedAt null`); the losing concurrent refresh is treated as reuse → all sessions revoked, 401.
 - **Strict reuse, no grace window:** two tabs refreshing at the same instant force a re-login everywhere (documented limitation).
 - **Immediate revocation for HR-only routes:** on routes marked `@Roles('HR')` the guard re-reads the user (one indexed query) and rejects with 401 if the employee is inactive/deleted, or 403 if no longer HR. Other routes keep the ≤ 15-minute window.
-- **Absolute session lifetime 30 days:** `refresh_tokens.session_started_at` is carried through rotation; a refresh past 30 days from sign-in fails with 401 and clears cookies. Expired and revoked rows of the user are purged on login.
+- **Absolute session lifetime 30 days:** `refresh_tokens.session_started_at` is carried through rotation; a refresh past 30 days from sign-in fails with 401 and clears cookies. Only **expired** rows of the user are purged on login — revoked rows are kept until they expire so a replay of a stolen, rotated token is still detected (corrected 2026-10-09 after the commit security review).
 - **Login rate limit:** `@nestjs/throttler` on `POST /auth/login`: 5 attempts per minute per IP + email → 429 Problem Details (`/problems/too-many-requests`), with `Retry-After`.
+- **Plus a per-IP limit:** 20 login attempts per minute per IP across all emails (`LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE`, default 20) so one IP can't spray a password across many accounts (added 2026-10-09 after the commit security review).
 - **Secrets:** `.env.example` ships an empty `JWT_ACCESS_SECRET`; the API refuses to start with an empty or placeholder secret; README tells how to generate one.
 - **Failed refresh** always clears both cookies; an inactive/deleted user's presented token is revoked.
 - **Production defaults:** Swagger off when `NODE_ENV=production` unless explicitly enabled; `WEB_ORIGIN` must be a URL.
+
+## Web: decisions and contract (2026-10-09)
+- **On 401:** the http client tries `POST /auth/refresh` once (one shared in-flight refresh per tab) and retries the original request; if the refresh also fails, it clears the session and redirects to `/login?next=<current path>`. Requests to `/auth/*` never trigger a refresh.
+- Every non-GET request sends `X-Requested-With: hr-payroll`; axios uses `withCredentials: true`.
+- `features/auth/`: `api/auth-api.ts` (`login`, `logout`, `fetchMe`, `fetchMyTaxTable`), `use-session.ts` (TanStack query on `/auth/me`; `null` when signed out), `pages/login-page.tsx` (`/login`: "Email", "Password", "Sign in"), `require-auth.tsx` (route guard → `/login?next=`), `require-hr.tsx` (renders "You don't have access" for EMPLOYEE).
+- `features/my-pay/pages/my-pay-page.tsx` (`/my-pay`, EMPLOYEE): own payslip (reuses `PayslipView` + month picker) and "Your tax table" (applied brackets).
+- Sidebar: user name + role, "Sign out"; HR sees Employees + Settings; EMPLOYEE sees Employees + My pay.
+- Employees page for EMPLOYEE: no Salary column, no "New employee", row menu hidden (nothing actionable), no "Show deleted".
+- `shared/http/http-client.ts` keeps `ApiError`/`toApiError`; the refresh logic lives in an axios response interceptor there, with the redirect injected (so tests can assert it without a real navigation).
+
+### Web edge cases (approved with 16–18; details added 2026-10-09)
+19. A 401 on a normal request → exactly one refresh call even if several requests fail at once; all of them retry after it succeeds.
+20. Refresh fails → redirect to `/login?next=/current/path?query` and the query cache is cleared; `next` is ignored unless it is a same-origin relative path.
+21. Signed-in users visiting `/login` are sent to `/employees`.
+22. A 429 on login shows "Too many sign-in attempts. Try again in a minute." inline.
+23. EMPLOYEE never sees salary UI (column, Pay tab, payslip menu) and `/settings/*` shows "You don't have access".
 
 ## Edge cases (approved 2026-10-09)
 **Login**

@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CLOCK, SystemClock } from '../common/clock';
 import { appConfig } from '../common/config';
+import { loginThrottlers } from './login-throttlers';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -18,10 +19,8 @@ import { USER_REPOSITORY } from './users.repository';
 @Module({
   imports: [
     JwtModule.register({ secret: appConfig.JWT_ACCESS_SECRET }),
-    // Applied only where LoginThrottlerGuard is used, not globally.
-    ThrottlerModule.forRoot([
-      { ttl: 60_000, limit: appConfig.LOGIN_RATE_LIMIT_PER_MINUTE },
-    ]),
+    // Applied only where LoginThrottlerGuard is used (POST /auth/login), not globally.
+    ThrottlerModule.forRoot(loginThrottlers),
   ],
   controllers: [AuthController],
   providers: [

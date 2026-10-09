@@ -54,9 +54,10 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
     }
   }
 
-  async deleteExpiredAndRevoked(userId: string, now: Date): Promise<void> {
+  /** Revoked rows stay: they are what lets reuse of a rotated token be detected. */
+  async deleteExpired(userId: string, now: Date): Promise<void> {
     this.rows = this.rows.filter(
-      (r) => r.userId !== userId || (r.expiresAt > now && !r.revokedAt),
+      (r) => r.userId !== userId || r.expiresAt > now,
     );
   }
 
