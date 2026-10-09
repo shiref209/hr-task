@@ -46,7 +46,7 @@ export function EmployeeDeleteDialog({ employee, onClose, onDeleted }: EmployeeD
       tone="danger"
       isConfirming={isPending}
       confirmDisabled={isLastHr}
-      error={problem ? (problem.problem.detail ?? problem.problem.title) : undefined}
+      error={problem?.message}
       onConfirm={confirm}
       onCancel={onClose}
     />

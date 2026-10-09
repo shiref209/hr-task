@@ -49,11 +49,10 @@ export function EmployeesPage() {
     restore.mutate(employee.id, {
       onSuccess: () => toast.show({ variant: 'success', title: `${employee.fullName} restored` }),
       onError: (error) => {
-        const { problem } = toApiError(error);
         toast.show({
           variant: 'error',
           title: 'Could not restore employee',
-          description: problem.detail ?? problem.title,
+          description: toApiError(error).message,
         });
       },
     });
@@ -127,9 +126,9 @@ export function EmployeesPage() {
 
   const total = employees.data?.meta.totalItems;
   return (
-    <div className="employees-page">
-      <div className="employees-page__header">
-        <h1 className="employees-page__title">Employees</h1>
+    <div className="page employees-page">
+      <div className="page__header">
+        <h1 className="page__title">Employees</h1>
         <Button ref={newEmployeeButton} onClick={onCreate}>New employee</Button>
       </div>
       <EmployeeFilters

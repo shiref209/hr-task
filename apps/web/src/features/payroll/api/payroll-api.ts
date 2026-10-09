@@ -6,58 +6,44 @@ import type {
   TaxTable,
   TaxTableInput,
 } from '@hr/types';
-import { http } from '../../../shared/http/http-client';
+import { http, unwrap } from '../../../shared/http/http-client';
 
-export async function fetchTaxTables(): Promise<TaxTable[]> {
-  const { data } = await http.get<ApiResponse<TaxTable[]>>('/tax-tables');
-  return data.data;
+export function fetchTaxTables(): Promise<TaxTable[]> {
+  return unwrap(http.get<ApiResponse<TaxTable[]>>('/tax-tables'));
 }
 
-export async function createTaxTable(input: TaxTableInput): Promise<TaxTable> {
-  const { data } = await http.post<ApiResponse<TaxTable>>('/tax-tables', input);
-  return data.data;
+export function createTaxTable(input: TaxTableInput): Promise<TaxTable> {
+  return unwrap(http.post<ApiResponse<TaxTable>>('/tax-tables', input));
 }
 
-export async function updateTaxTable(id: string, input: TaxTableInput): Promise<TaxTable> {
-  const { data } = await http.put<ApiResponse<TaxTable>>(`/tax-tables/${id}`, input);
-  return data.data;
+export function updateTaxTable(id: string, input: TaxTableInput): Promise<TaxTable> {
+  return unwrap(http.put<ApiResponse<TaxTable>>(`/tax-tables/${id}`, input));
 }
 
-export async function setDefaultTaxTable(id: string): Promise<TaxTable> {
-  const { data } = await http.post<ApiResponse<TaxTable>>(`/tax-tables/${id}/default`);
-  return data.data;
+export function setDefaultTaxTable(id: string): Promise<TaxTable> {
+  return unwrap(http.post<ApiResponse<TaxTable>>(`/tax-tables/${id}/default`));
 }
 
 export async function deleteTaxTable(id: string): Promise<void> {
   await http.delete(`/tax-tables/${id}`);
 }
 
-export async function fetchSocialInsurance(): Promise<SocialInsurance> {
-  const { data } = await http.get<ApiResponse<SocialInsurance>>('/payroll-settings/social-insurance');
-  return data.data;
+export function fetchSocialInsurance(): Promise<SocialInsurance> {
+  return unwrap(http.get<ApiResponse<SocialInsurance>>('/payroll-settings/social-insurance'));
 }
 
-export async function updateSocialInsurance(input: SocialInsurance): Promise<SocialInsurance> {
-  const { data } = await http.put<ApiResponse<SocialInsurance>>(
-    '/payroll-settings/social-insurance',
-    input,
-  );
-  return data.data;
+export function updateSocialInsurance(input: SocialInsurance): Promise<SocialInsurance> {
+  return unwrap(http.put<ApiResponse<SocialInsurance>>('/payroll-settings/social-insurance', input));
 }
 
-export async function fetchPayItems(employeeId: string): Promise<PayItems> {
-  const { data } = await http.get<ApiResponse<PayItems>>(`/employees/${employeeId}/pay-items`);
-  return data.data;
+export function fetchPayItems(employeeId: string): Promise<PayItems> {
+  return unwrap(http.get<ApiResponse<PayItems>>(`/employees/${employeeId}/pay-items`));
 }
 
-export async function replacePayItems(employeeId: string, items: PayItems): Promise<PayItems> {
-  const { data } = await http.put<ApiResponse<PayItems>>(`/employees/${employeeId}/pay-items`, items);
-  return data.data;
+export function replacePayItems(employeeId: string, items: PayItems): Promise<PayItems> {
+  return unwrap(http.put<ApiResponse<PayItems>>(`/employees/${employeeId}/pay-items`, items));
 }
 
-export async function fetchPayslip(employeeId: string, month: string): Promise<Payslip> {
-  const { data } = await http.get<ApiResponse<Payslip>>(`/employees/${employeeId}/payslip`, {
-    params: { month },
-  });
-  return data.data;
+export function fetchPayslip(employeeId: string, month: string): Promise<Payslip> {
+  return unwrap(http.get<ApiResponse<Payslip>>(`/employees/${employeeId}/payslip`, { params: { month } }));
 }

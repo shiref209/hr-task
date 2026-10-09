@@ -1,6 +1,6 @@
 import type { SocialInsurance } from '@hr/types';
 import { formatAmount } from '@hr/types';
-import { normalizeSalary } from '../../employees/form/salary';
+import { normalizeSalary } from '../../../shared/forms/salary';
 
 export interface SocialInsuranceFormValues {
   rate: string;

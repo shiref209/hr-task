@@ -1,6 +1,5 @@
 import type { PayItems } from '@hr/types';
-import { formatAmount } from '@hr/types';
-import { normalizeSalary, parseSalary } from '../../employees/form/salary';
+import { displayAmount, normalizeSalary } from '../../../shared/forms/salary';
 
 export interface PayItemRow {
   name: string;
@@ -15,7 +14,7 @@ export interface PayFormValues {
 }
 
 const toRows = (items: PayItems['allowances']): PayItemRow[] =>
-  items.map(({ name, amount }) => ({ name, amount: parseSalary(amount) ? formatAmount(amount) : amount }));
+  items.map(({ name, amount }) => ({ name, amount: displayAmount(amount) }));
 
 export function toFormValues(taxTableId: string | null, items: PayItems): PayFormValues {
   return { taxTableId: taxTableId ?? '', allowances: toRows(items.allowances), deductions: toRows(items.deductions) };

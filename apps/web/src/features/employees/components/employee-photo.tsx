@@ -21,8 +21,7 @@ export function EmployeePhoto({ employee }: { employee: Employee }) {
     setError(undefined);
     upload.mutate(file, {
       onError: (cause) => {
-        const { problem } = toApiError(cause);
-        setError(problem.detail ?? problem.title);
+        setError(toApiError(cause).message);
       },
     });
   };

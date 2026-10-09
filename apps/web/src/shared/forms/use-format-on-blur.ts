@@ -1,6 +1,6 @@
 import type { FieldValues, Path, PathValue, UseFormReturn } from 'react-hook-form';
 import { formatAmount } from '@hr/types';
-import { parseSalary } from '../../employees/form/salary';
+import { parseSalary } from './salary';
 
 /** onBlur handler factory: formats a valid amount salary-style, leaves an invalid one as typed so its error stays visible. */
 export function useFormatOnBlur<V extends FieldValues>({

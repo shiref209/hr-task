@@ -1,6 +1,6 @@
 import type { TaxTable, TaxTableInput } from '@hr/types';
 import { formatAmount } from '@hr/types';
-import { normalizeSalary } from '../../employees/form/salary';
+import { normalizeSalary } from '../../../shared/forms/salary';
 
 export interface BracketFormValues {
   upTo: string;

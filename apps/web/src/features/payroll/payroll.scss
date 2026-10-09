@@ -1,24 +1,6 @@
 @use '../../shared/theme/breakpoints' as *;
 
 .payroll-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  max-width: 72rem;
-  margin-inline: auto;
-  padding: var(--space-4);
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-  }
-
-  &__title {
-    font-size: var(--font-size-2xl);
-  }
-
   &__list {
     display: flex;
     flex-direction: column;
@@ -36,14 +18,6 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-  }
-
-  &__alert,
-  &__alert:focus-visible {
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    background: var(--color-danger-subtle);
-    color: var(--color-danger);
   }
 
   &__actions {
@@ -147,13 +121,6 @@
     font-weight: var(--font-weight-regular);
     font-size: var(--font-size-md);
   }
-
-  &__alert {
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    background: var(--color-danger-subtle);
-    color: var(--color-danger);
-  }
 }
 
 .pay-form {
@@ -165,13 +132,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-  }
-
-  &__alert {
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    background: var(--color-danger-subtle);
-    color: var(--color-danger);
   }
 
   &__actions {

@@ -1,24 +1,6 @@
 @use '../../shared/theme/breakpoints' as *;
 
 .employees-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  max-width: 72rem;
-  margin-inline: auto;
-  padding: var(--space-4);
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-  }
-
-  &__title {
-    font-size: var(--font-size-2xl);
-  }
-
   &__count {
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
@@ -220,13 +202,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-
-  &__alert {
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    background: var(--color-danger-subtle);
-    color: var(--color-danger);
-  }
 }
 
 .employee-photo {

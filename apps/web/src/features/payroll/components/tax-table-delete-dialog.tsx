@@ -27,8 +27,6 @@ export function TaxTableDeleteDialog({ table, onClose }: TaxTableDeleteDialogPro
     });
   };
 
-  const problem = error ? toApiError(error).problem : null;
-
   return (
     <ConfirmDialog
       open={table !== null}
@@ -37,7 +35,7 @@ export function TaxTableDeleteDialog({ table, onClose }: TaxTableDeleteDialogPro
       confirmLabel="Delete"
       tone="danger"
       isConfirming={isPending}
-      error={problem ? (problem.detail ?? problem.title) : undefined}
+      error={error ? toApiError(error).message : undefined}
       onConfirm={confirm}
       onCancel={onClose}
     />

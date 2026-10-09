@@ -1,6 +1,5 @@
 import { ErrorView, Skeleton, useToast } from '../../../shared/ui';
-import { toApiError } from '../../../shared/http/http-client';
-import { apiErrorToForm } from '../../employees/form/api-error-to-form';
+import { saveOrMapErrors } from '../../../shared/forms/api-error-to-form';
 import { useSocialInsurance, useUpdateSocialInsurance } from '../api/use-social-insurance';
 import { SocialInsuranceForm } from '../components/social-insurance-form';
 import '../payroll.scss';
@@ -26,31 +25,22 @@ export function SocialInsurancePage() {
         key={`${rate}|${cap ?? ''}`}
         initial={settings.data}
         isSaving={update.isPending}
-        onSubmit={async (input) => {
-          try {
-            await update.mutateAsync(input);
-            toast.show({ variant: 'success', title: 'Social insurance saved' });
-            return undefined;
-          } catch (cause) {
-            const error = toApiError(cause);
-            const mapped = apiErrorToForm(error);
-            if (Object.keys(mapped.fieldErrors).length === 0 && !mapped.formError) {
-              toast.show({
-                variant: 'error',
-                title: 'Could not save social insurance',
-                description: error.problem.detail ?? error.problem.title,
-              });
-            }
-            return mapped;
-          }
-        }}
+        onSubmit={(input) =>
+          saveOrMapErrors(
+            async () => {
+              await update.mutateAsync(input);
+              toast.show({ variant: 'success', title: 'Social insurance saved' });
+            },
+            { toast, failureTitle: 'Could not save social insurance' },
+          )
+        }
       />
     );
   };
 
   return (
-    <div className="payroll-page">
-      <h1 className="payroll-page__title">Social insurance</h1>
+    <div className="page">
+      <h1 className="page__title">Social insurance</h1>
       {renderBody()}
     </div>
   );

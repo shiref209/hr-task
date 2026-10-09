@@ -1,13 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useState } from 'react';
+import { saveOrMapErrors } from '../../../shared/forms/api-error-to-form';
+import { useDiscardGuard } from '../../../shared/forms/use-discard-guard';
 import { toApiError } from '../../../shared/http/http-client';
-import { Button, ConfirmDialog, Drawer, ErrorView, Skeleton, Tabs, useToast } from '../../../shared/ui';
+import { Button, Drawer, ErrorView, Skeleton, Tabs, useToast } from '../../../shared/ui';
 import { useDepartments } from '../api/use-departments';
 import { useCreateEmployee } from '../api/use-create-employee';
 import { useEmployee } from '../api/use-employee';
 import { useUpdateEmployee } from '../api/use-update-employee';
 import { employeeKeys } from '../api/employee-keys';
-import { apiErrorToForm } from '../form/api-error-to-form';
 import {
   changedFields,
   emptyFormValues,
@@ -45,13 +46,13 @@ export function EmployeeDrawer({ target, onClose }: EmployeeDrawerProps) {
   const [tab, setTab] = useState<DrawerTab>('details');
   // The Pay tab loads on first visit, then stays mounted so unsaved input survives tab switches.
   const [payVisited, setPayVisited] = useState(false);
-  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
 
   const dirty = detailsDirty || payDirty;
   const isSaving = createEmployee.isPending || updateEmployee.isPending;
   const loadedEmployee = employee.data;
   const isEdit = target?.mode === 'edit';
   const notFound = employee.isError && toApiError(employee.error).status === 404;
+  const { requestClose, discardDialog } = useDiscardGuard({ dirty, isSaving, onClose });
 
   useEffect(() => {
     if (!notFound) return;
@@ -73,42 +74,21 @@ export function EmployeeDrawer({ target, onClose }: EmployeeDrawerProps) {
     setTab(next);
   };
 
-  const requestClose = () => {
-    if (isSaving) return;
-    if (dirty) setConfirmingDiscard(true);
-    else onClose();
-  };
-
-  const discard = () => {
-    setConfirmingDiscard(false);
-    onClose();
-  };
-
-  const save = async (values: EmployeeFormValues) => {
-    try {
-      if (target?.mode === 'edit' && loadedEmployee) {
-        const changes = changedFields(toFormValues(loadedEmployee), values);
-        await updateEmployee.mutateAsync({ id: target.id, changes });
-        toast.show({ variant: 'success', title: 'Changes saved' });
-      } else {
-        await createEmployee.mutateAsync(toCreateInput(values));
-        toast.show({ variant: 'success', title: 'Employee created' });
-      }
-      onClose();
-      return undefined;
-    } catch (cause) {
-      const error = toApiError(cause);
-      const mapped = apiErrorToForm(error);
-      if (Object.keys(mapped.fieldErrors).length === 0 && !mapped.formError) {
-        toast.show({
-          variant: 'error',
-          title: 'Could not save employee',
-          description: error.problem.detail ?? error.problem.title,
-        });
-      }
-      return mapped;
-    }
-  };
+  const save = (values: EmployeeFormValues) =>
+    saveOrMapErrors(
+      async () => {
+        if (target?.mode === 'edit' && loadedEmployee) {
+          const changes = changedFields(toFormValues(loadedEmployee), values);
+          await updateEmployee.mutateAsync({ id: target.id, changes });
+          toast.show({ variant: 'success', title: 'Changes saved' });
+        } else {
+          await createEmployee.mutateAsync(toCreateInput(values));
+          toast.show({ variant: 'success', title: 'Employee created' });
+        }
+        onClose();
+      },
+      { toast, failureTitle: 'Could not save employee' },
+    );
 
   const renderBody = () => {
     if (target === null) return null;
@@ -183,16 +163,7 @@ export function EmployeeDrawer({ target, onClose }: EmployeeDrawerProps) {
       >
         <div className="employee-drawer">{renderBody()}</div>
       </Drawer>
-      <ConfirmDialog
-        open={confirmingDiscard}
-        title="Discard unsaved changes?"
-        description="Your changes will be lost."
-        confirmLabel="Discard"
-        cancelLabel="Keep editing"
-        tone="danger"
-        onConfirm={discard}
-        onCancel={() => setConfirmingDiscard(false)}
-      />
+      {discardDialog}
     </>
   );
 }

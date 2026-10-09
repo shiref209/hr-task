@@ -1,12 +1,13 @@
-import { localToday, type Department } from '@hr/types';
-import { useEffect, useRef, useState } from 'react';
+import { createEmployeeSchema, localToday, updateEmployeeSchema, type Department } from '@hr/types';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch, type Path } from 'react-hook-form';
-import { formatAmount } from '@hr/types';
-import { SelectInput, TextInput } from '../../../shared/ui';
-import type { ServerFormErrors } from '../form/api-error-to-form';
-import { employeeResolver } from '../form/employee-resolver';
+import { FormAlert, SelectInput, TextInput } from '../../../shared/ui';
+import type { ServerFormErrors } from '../../../shared/forms/api-error-to-form';
+import { displayAmount, normalizeSalary } from '../../../shared/forms/salary';
+import { schemaResolver } from '../../../shared/forms/schema-resolver';
+import { useFormatOnBlur } from '../../../shared/forms/use-format-on-blur';
+import { useServerFormErrors } from '../../../shared/forms/use-server-form-errors';
 import { changedFields, emptyFormValues, type EmployeeFormValues } from '../form/form-values';
-import { parseSalary } from '../form/salary';
 
 interface EmployeeFormProps {
   id: string;
@@ -38,51 +39,32 @@ export function EmployeeForm({
   onSubmit,
   onDirtyChange,
 }: EmployeeFormProps) {
-  const [formError, setFormError] = useState<string>();
-  const alertRef = useRef<HTMLParagraphElement>(null);
-  const [resolver] = useState(() => employeeResolver(mode));
-  const {
-    register,
-    control,
-    handleSubmit,
-    setError,
-    setFocus,
-    setValue,
-    getValues,
-    trigger,
-    formState: { errors },
-  } = useForm<EmployeeFormValues>({
-    defaultValues: {
-      ...initial,
-      baseSalary: parseSalary(initial.baseSalary) ? formatAmount(initial.baseSalary) : initial.baseSalary,
-    },
+  // The salary is normalized first because the schemas only know the API format.
+  const [resolver] = useState(() =>
+    schemaResolver<EmployeeFormValues>(
+      mode === 'create' ? createEmployeeSchema : updateEmployeeSchema,
+      (values) => ({ ...values, baseSalary: normalizeSalary(values.baseSalary) }),
+    ),
+  );
+  const form = useForm<EmployeeFormValues>({
+    defaultValues: { ...initial, baseSalary: displayAmount(initial.baseSalary) },
     resolver,
     mode: 'onBlur',
   });
+  const { register, control, handleSubmit, setError, setFocus, getValues, formState: { errors } } = form;
+  const formatOnBlur = useFormatOnBlur(form);
+  const { formError, withServerErrors } = useServerFormErrors(setError, isFormField);
 
   useWatch({ control }); // re-renders on every edit so `dirty` below stays current
   const dirty = Object.keys(changedFields(initial, getValues())).length > 0;
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
   useEffect(() => setFocus('fullName'), [setFocus]);
-  useEffect(() => alertRef.current?.focus(), [formError]);
 
   const submit = handleSubmit(async (values) => {
     if (isSaving) return;
-    setFormError(undefined);
-    const failure = await onSubmit(values);
-    if (!failure) return;
-    for (const [name, message] of Object.entries(failure.fieldErrors)) {
-      if (isFormField(name)) setError(name, { type: 'server', message }, { shouldFocus: true });
-    }
-    setFormError(failure.formError);
+    await withServerErrors(() => onSubmit(values));
   });
-
-  const formatSalary = async () => {
-    if (!(await trigger('baseSalary'))) return;
-    const normalized = parseSalary(getValues('baseSalary'));
-    if (normalized) setValue('baseSalary', formatAmount(normalized));
-  };
 
   return (
     <form id={id} className="employee-form" onSubmit={submit} noValidate>
@@ -95,7 +77,7 @@ export function EmployeeForm({
         error={errors.baseSalary?.message}
         {...register('baseSalary')}
         // Capture phase: the registered onBlur prop stays free for react-hook-form's own validation.
-        onBlurCapture={formatSalary}
+        onBlurCapture={formatOnBlur('baseSalary')}
       />
       <TextInput label="Job title" required error={errors.jobTitle?.message} {...register('jobTitle')} />
       <SelectInput
@@ -117,11 +99,7 @@ export function EmployeeForm({
       <TextInput label="Phone" type="tel" error={errors.phone?.message} {...register('phone')} />
       <SelectInput label="Status" options={STATUS_OPTIONS} {...register('status')} />
       <SelectInput label="Type" options={TYPE_OPTIONS} {...register('type')} />
-      {formError ? (
-        <p ref={alertRef} className="employee-form__alert" role="alert" tabIndex={-1}>
-          {formError}
-        </p>
-      ) : null}
+      <FormAlert message={formError} />
     </form>
   );
 }

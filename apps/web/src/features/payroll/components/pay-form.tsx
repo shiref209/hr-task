@@ -1,12 +1,12 @@
 import { payItemsSchema, type Employee, type PayItems, type TaxTable } from '@hr/types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toApiError } from '../../../shared/http/http-client';
-import { Button, SelectInput, useToast } from '../../../shared/ui';
+import { Button, FormAlert, SelectInput, useToast } from '../../../shared/ui';
 import { useUpdateEmployee } from '../../employees/api/use-update-employee';
 import { useReplacePayItems } from '../api/use-pay-items';
 import { toFormValues, toItems, type PayFormValues } from '../form/pay-values';
-import { schemaResolver } from '../form/schema-resolver';
+import { schemaResolver } from '../../../shared/forms/schema-resolver';
 import { PayItemsEditor } from './pay-items-editor';
 import '../payroll.scss';
 
@@ -26,7 +26,6 @@ export function PayForm({ employee, tables, items, onDirtyChange, onSaved }: Pay
   const replaceItems = useReplacePayItems(employee.id);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string>();
-  const alertRef = useRef<HTMLParagraphElement>(null);
   const [initial] = useState(() => toFormValues(employee.taxTable?.id ?? null, items));
   // What the server holds now. A part that saved stays here, so a retry sends only the part that failed.
   const [saved, setSaved] = useState({ taxTableId: initial.taxTableId, items: toItems(initial) });
@@ -41,7 +40,6 @@ export function PayForm({ employee, tables, items, onDirtyChange, onSaved }: Pay
   const dirty = taxChanged || itemsChanged;
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
-  useEffect(() => alertRef.current?.focus(), [formError]);
 
   const defaultTable = tables.find((table) => table.isDefault);
   const options = [
@@ -55,8 +53,7 @@ export function PayForm({ employee, tables, items, onDirtyChange, onSaved }: Pay
     setFormError(undefined);
     let failure: string | undefined;
     const fail = (cause: unknown) => {
-      const { problem } = toApiError(cause);
-      failure ??= problem.detail ?? problem.title;
+      failure ??= toApiError(cause).message;
     };
 
     if (values.taxTableId !== saved.taxTableId) {
@@ -96,11 +93,7 @@ export function PayForm({ employee, tables, items, onDirtyChange, onSaved }: Pay
         <PayItemsEditor form={form} name="allowances" noun="allowance" title="Allowances" />
         <PayItemsEditor form={form} name="deductions" noun="deduction" title="Deductions" />
       </div>
-      {formError ? (
-        <p ref={alertRef} className="pay-form__alert" role="alert" tabIndex={-1}>
-          {formError}
-        </p>
-      ) : null}
+      <FormAlert message={formError} />
       <div className="pay-form__actions">
         <Button type="submit" disabled={!dirty} isLoading={isSaving}>
           Save pay

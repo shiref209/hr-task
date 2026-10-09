@@ -44,10 +44,9 @@ function PayslipBody({ employeeId, onClose }: { employeeId: string; onClose: () 
   const renderPayslip = () => {
     if (payslip.isError) {
       if (status === 422) {
-        const { problem } = toApiError(payslip.error);
         return (
           <p className="payslip-drawer__message" role="status">
-            {problem.detail ?? problem.title}
+            {toApiError(payslip.error).message}
           </p>
         );
       }

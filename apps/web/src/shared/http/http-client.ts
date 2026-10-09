@@ -1,5 +1,5 @@
-import { ProblemType, type ProblemDetails } from '@hr/types';
-import axios from 'axios';
+import { ProblemType, type ApiResponse, type ProblemDetails } from '@hr/types';
+import axios, { type AxiosResponse } from 'axios';
 
 export class ApiError extends Error {
   readonly status: number;
@@ -16,6 +16,12 @@ export class ApiError extends Error {
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3000',
 });
+
+/** The payload of a success envelope. */
+export async function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {
+  const { data } = await request;
+  return data.data;
+}
 
 /** Uploads are served by the API, not by the web origin; relative paths must be resolved against it. */
 export function resolveAssetUrl(path: string | null): string | undefined {

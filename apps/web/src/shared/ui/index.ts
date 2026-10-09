@@ -14,3 +14,4 @@ export { Menu } from './menu/menu';
 export { ErrorView } from './error-view/error-view';
 export { Drawer } from './drawer/drawer';
 export { Tabs } from './tabs/tabs';
+export { FormAlert } from './form-alert/form-alert';

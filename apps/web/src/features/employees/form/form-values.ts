@@ -5,7 +5,7 @@ import type {
   EmployeeType,
   UpdateEmployeeInput,
 } from '@hr/types';
-import { normalizeSalary } from './salary';
+import { normalizeSalary } from '../../../shared/forms/salary';
 
 export interface EmployeeFormValues {
   fullName: string;

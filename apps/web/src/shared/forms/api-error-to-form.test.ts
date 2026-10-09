@@ -1,6 +1,6 @@
 import { ProblemType } from '@hr/types';
 import { describe, expect, it } from 'vitest';
-import { ApiError } from '../../../shared/http/http-client';
+import { ApiError } from '../http/http-client';
 import { apiErrorToForm } from './api-error-to-form';
 
 const error = (status: number, extra: Record<string, unknown> = {}) =>

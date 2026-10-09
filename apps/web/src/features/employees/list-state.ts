@@ -1,11 +1,13 @@
 import {
   employeeStatusSchema,
   idParamSchema,
+  paginationQuerySchema,
   type EmployeeListQuery,
   type EmployeeStatus,
 } from '@hr/types';
 
-export const PAGE_SIZE = 20;
+/** The API's default page size. */
+export const PAGE_SIZE = paginationQuerySchema.shape.pageSize.parse(undefined);
 const SEARCH_MAX_LENGTH = 100;
 
 export interface EmployeeListState {

@@ -1,7 +1,7 @@
 import { useFieldArray, type UseFormReturn } from 'react-hook-form';
 import { Button, TextInput } from '../../../shared/ui';
 import type { PayFormValues } from '../form/pay-values';
-import { useFormatOnBlur } from '../form/use-format-on-blur';
+import { useFormatOnBlur } from '../../../shared/forms/use-format-on-blur';
 
 interface PayItemsEditorProps {
   form: UseFormReturn<PayFormValues>;

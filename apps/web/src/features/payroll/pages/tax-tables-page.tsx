@@ -26,11 +26,10 @@ export function TaxTablesPage() {
     setDefault.mutate(table.id, {
       onSuccess: () => toast.show({ variant: 'success', title: `${table.name} is now the default` }),
       onError: (error) => {
-        const { problem } = toApiError(error);
         toast.show({
           variant: 'error',
           title: 'Could not set the default',
-          description: problem.detail ?? problem.title,
+          description: toApiError(error).message,
         });
       },
     });
@@ -67,9 +66,9 @@ export function TaxTablesPage() {
   };
 
   return (
-    <div className="payroll-page">
-      <div className="payroll-page__header">
-        <h1 className="payroll-page__title">Tax tables</h1>
+    <div className="page payroll-page">
+      <div className="page__header">
+        <h1 className="page__title">Tax tables</h1>
         <Button onClick={onCreate}>New table</Button>
       </div>
       {renderBody()}

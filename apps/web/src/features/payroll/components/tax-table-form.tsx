@@ -1,11 +1,12 @@
 import { taxTableInputSchema, type TaxTableInput } from '@hr/types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useFieldArray, useForm, useWatch, type Path } from 'react-hook-form';
-import { Button, TextInput } from '../../../shared/ui';
-import type { ServerFormErrors } from '../../employees/form/api-error-to-form';
-import { schemaResolver } from '../form/schema-resolver';
+import { Button, FormAlert, TextInput } from '../../../shared/ui';
+import type { ServerFormErrors } from '../../../shared/forms/api-error-to-form';
+import { schemaResolver } from '../../../shared/forms/schema-resolver';
 import { toInput, type TaxTableFormValues } from '../form/tax-table-values';
-import { useFormatOnBlur } from '../form/use-format-on-blur';
+import { useFormatOnBlur } from '../../../shared/forms/use-format-on-blur';
+import { useServerFormErrors } from '../../../shared/forms/use-server-form-errors';
 
 interface TaxTableFormProps {
   id: string;
@@ -20,29 +21,21 @@ const isFormField = (name: string): name is Path<TaxTableFormValues> =>
   /^(name|brackets\.\d+\.(upTo|rate))$/.test(name);
 
 export function TaxTableForm({ id, initial, isSaving, onSubmit, onDirtyChange }: TaxTableFormProps) {
-  const [formError, setFormError] = useState<string>();
-  const alertRef = useRef<HTMLParagraphElement>(null);
   const form = useForm<TaxTableFormValues>({ defaultValues: initial, resolver, mode: 'onBlur' });
   const { register, control, handleSubmit, setError, setFocus, getValues, formState: { errors } } = form;
   const { fields, insert, remove } = useFieldArray({ control, name: 'brackets' });
   const formatOnBlur = useFormatOnBlur(form);
+  const { formError, withServerErrors } = useServerFormErrors(setError, isFormField);
 
   useWatch({ control }); // re-renders on every edit so `dirty` below stays current
   const dirty = JSON.stringify(toInput(getValues())) !== JSON.stringify(toInput(initial));
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
   useEffect(() => setFocus('name'), [setFocus]);
-  useEffect(() => alertRef.current?.focus(), [formError]);
 
   const submit = handleSubmit(async (values) => {
     if (isSaving) return;
-    setFormError(undefined);
-    const failure = await onSubmit(toInput(values));
-    if (!failure) return;
-    for (const [name, message] of Object.entries(failure.fieldErrors)) {
-      if (isFormField(name)) setError(name, { type: 'server', message }, { shouldFocus: true });
-    }
-    setFormError(failure.formError);
+    await withServerErrors(() => onSubmit(toInput(values)));
   });
 
   const lastIndex = fields.length - 1;
@@ -106,11 +99,7 @@ export function TaxTableForm({ id, initial, isSaving, onSubmit, onDirtyChange }:
           Add bracket
         </Button>
       </div>
-      {formError ? (
-        <p ref={alertRef} className="tax-table-form__alert" role="alert" tabIndex={-1}>
-          {formError}
-        </p>
-      ) : null}
+      <FormAlert message={formError} />
     </form>
   );
 }
