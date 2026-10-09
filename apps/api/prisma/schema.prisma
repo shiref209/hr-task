@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum EmployeeType {
+  HR
+  EMPLOYEE
+}
+
+model Department {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String     @unique
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  employees Employee[]
+
+  @@map("departments")
+}
+
+model Employee {
+  id              String         @id @default(uuid()) @db.Uuid
+  fullName        String         @map("full_name") @db.VarChar(100)
+  // Lowercased by the shared Zod schema, so a plain unique index is case-insensitive.
+  // Unique forever, soft-deleted rows included.
+  email           String         @unique @db.VarChar(254)
+  phone           String?        @db.VarChar(16)
+  jobTitle        String         @map("job_title") @db.VarChar(100)
+  departmentId    String         @map("department_id") @db.Uuid
+  department      Department     @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  hireDate        DateTime       @map("hire_date") @db.Date
+  baseSalary      Decimal        @map("base_salary") @db.Decimal(12, 2)
+  status          EmployeeStatus @default(ACTIVE)
+  type            EmployeeType   @default(EMPLOYEE)
+  profileImageUrl String?        @map("profile_image_url")
+  deletedAt       DateTime?      @map("deleted_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  // List: WHERE deleted_at [AND department/status/type] ORDER BY full_name, id
+  @@index([deletedAt, fullName, id])
+  // FK index; serves the departmentId filter
+  @@index([departmentId])
+  // Last-HR guard: count active, non-deleted HR
+  @@index([type, status])
+  @@map("employees")
+}
