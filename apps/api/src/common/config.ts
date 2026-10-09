@@ -21,6 +21,7 @@ export const envSchema = z
       .int()
       .positive()
       .default(20),
+    LOGIN_RATE_LIMIT_PER_EMAIL: z.coerce.number().int().positive().default(30),
   })
   .transform((env) => ({
     ...env,

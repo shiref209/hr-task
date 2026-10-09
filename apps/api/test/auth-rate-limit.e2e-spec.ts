@@ -1,6 +1,7 @@
 // Must precede any app import: appConfig is parsed when the module graph loads.
 process.env.LOGIN_RATE_LIMIT_PER_MINUTE = '5';
 process.env.LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE = '8';
+process.env.LOGIN_RATE_LIMIT_PER_EMAIL = '1000';
 
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';

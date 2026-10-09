@@ -118,4 +118,24 @@ describe('envSchema', () => {
       );
     });
   });
+
+  describe('LOGIN_RATE_LIMIT_PER_EMAIL', () => {
+    it('defaults to 30', () => {
+      const result = parse({});
+
+      expect(result.success && result.data.LOGIN_RATE_LIMIT_PER_EMAIL).toBe(30);
+    });
+
+    it('accepts a positive integer', () => {
+      const result = parse({ LOGIN_RATE_LIMIT_PER_EMAIL: '1000' });
+
+      expect(result.success && result.data.LOGIN_RATE_LIMIT_PER_EMAIL).toBe(
+        1000,
+      );
+    });
+
+    it.each(['0', '-3', 'abc', '2.5', ''])('rejects %j', (value) => {
+      expect(parse({ LOGIN_RATE_LIMIT_PER_EMAIL: value }).success).toBe(false);
+    });
+  });
 });
