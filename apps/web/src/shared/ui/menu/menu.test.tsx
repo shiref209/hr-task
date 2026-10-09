@@ -91,4 +91,27 @@ describe('Menu', () => {
     expect(onEdit).not.toHaveBeenCalled();
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
+
+  describe('keyboard open on a closed trigger', () => {
+    it.each([['{ArrowDown}'], ['{Enter}'], [' ']])(
+      'opens with %s and focuses the first item',
+      async (key) => {
+        const { trigger } = setup();
+        trigger.focus();
+        await userEvent.keyboard(key);
+
+        expect(screen.getByRole('menu')).toBeInTheDocument();
+        expect(screen.getAllByRole('menuitem')[0]).toHaveFocus();
+      },
+    );
+
+    it('opens with ArrowUp and focuses the last item', async () => {
+      const { trigger } = setup();
+      trigger.focus();
+      await userEvent.keyboard('{ArrowUp}');
+
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+      expect(screen.getAllByRole('menuitem').at(-1)).toHaveFocus();
+    });
+  });
 });

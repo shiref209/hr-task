@@ -1,11 +1,12 @@
 import type { Employee } from '@hr/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, EmptyState, ErrorView, Pagination, Skeleton, useToast } from '../../../shared/ui';
 import { toApiError } from '../../../shared/http/http-client';
 import { useDebouncedValue } from '../../../shared/hooks/use-debounced-value';
 import { useDepartments } from '../api/use-departments';
 import { useEmployees } from '../api/use-employees';
 import { useRestoreEmployee } from '../api/use-restore-employee';
+import { EmployeeDeleteDialog } from '../components/employee-delete-dialog';
 import { EmployeeDrawer, type EmployeeDrawerTarget } from '../components/employee-drawer';
 import { EmployeeFilters } from '../components/employee-filters';
 import { EmployeeList } from '../components/employee-list';
@@ -18,6 +19,10 @@ const SKELETON_ROWS = 5;
 
 export function EmployeesPage() {
   const [drawer, setDrawer] = useState<EmployeeDrawerTarget | null>(null);
+  const [deleting, setDeleting] = useState<Employee | null>(null);
+  // Decided when the dialog opens, because the refetch removes the row from the list.
+  const focusAfterDelete = useRef<string | 'new-employee' | null>(null);
+  const newEmployeeButton = useRef<HTMLButtonElement>(null);
   const closeDrawer = useCallback(() => setDrawer(null), []);
   const onCreate = () => setDrawer({ mode: 'create' });
   const onEdit = (employee: Employee) =>
@@ -49,6 +54,27 @@ export function EmployeesPage() {
         });
       },
     });
+
+  const onDelete = (employee: Employee) => {
+    const items = data?.items ?? [];
+    const index = items.findIndex((item) => item.id === employee.id);
+    focusAfterDelete.current =
+      items[index + 1]?.id ?? items[index - 1]?.id ?? 'new-employee';
+    setDeleting(employee);
+  };
+
+  useEffect(() => {
+    const wanted = focusAfterDelete.current;
+    if (wanted === null || deleting !== null || employees.isFetching) return;
+    const target =
+      wanted === 'new-employee'
+        ? newEmployeeButton.current
+        : document.querySelector<HTMLElement>(
+            `[data-employee-id="${CSS.escape(wanted)}"] [aria-haspopup="menu"]`,
+          );
+    target?.focus();
+    focusAfterDelete.current = null;
+  }, [deleting, employees.isFetching, data]);
 
   const hasFilters = Boolean(query.search ?? query.departmentId ?? query.status);
 
@@ -84,6 +110,7 @@ export function EmployeesPage() {
           busy={employees.isFetching}
           onRestore={onRestore}
           onEdit={onEdit}
+          onDelete={onDelete}
         />
         <Pagination
           page={employees.data.meta.page}
@@ -99,7 +126,7 @@ export function EmployeesPage() {
     <main className="employees-page">
       <div className="employees-page__header">
         <h1 className="employees-page__title">Employees</h1>
-        <Button onClick={onCreate}>New employee</Button>
+        <Button ref={newEmployeeButton} onClick={onCreate}>New employee</Button>
       </div>
       <EmployeeFilters
         state={state}
@@ -111,6 +138,14 @@ export function EmployeesPage() {
         {total === undefined ? '' : `${total} ${total === 1 ? 'employee' : 'employees'}`}
       </p>
       {renderBody()}
+      <EmployeeDeleteDialog
+        employee={deleting}
+        onClose={() => {
+          setDeleting(null);
+          focusAfterDelete.current = null;
+        }}
+        onDeleted={() => setDeleting(null)}
+      />
       <EmployeeDrawer target={drawer} onClose={closeDrawer} />
     </main>
   );

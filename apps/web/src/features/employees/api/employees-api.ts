@@ -27,6 +27,10 @@ export async function restoreEmployee(id: string): Promise<Employee> {
   return data.data;
 }
 
+export async function deleteEmployee(id: string): Promise<void> {
+  await http.delete(`/employees/${id}`);
+}
+
 export async function fetchEmployee(id: string): Promise<Employee> {
   const { data } = await http.get<ApiResponse<Employee>>(`/employees/${id}`);
   return data.data;

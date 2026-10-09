@@ -148,6 +148,24 @@ apps/web/src/
 - `features/employees/components/employee-form.tsx` (pure form: react-hook-form + `zodResolver`), `employee-drawer.tsx` (mode `create` | `edit` + id; loading, mutations, server errors, unsaved guard, toasts), `employee-photo.tsx` (avatar + "Change photo", client type/size check, upload).
 - Page: header "+ New employee"; ⋯ menu on active rows gets **Edit**.
 
+## Deep-dive 3 — Delete
+
+### Decisions (2026-10-09)
+- Soft delete from the row's ⋯ menu, confirmed in `ConfirmDialog`. **No undo** in the toast; restore stays in the "Show deleted" view.
+- The server decides who the last active HR is: a 422 is shown **inside the confirm dialog**.
+- Leaving an emptied page moves back one page (same rule as restore).
+
+### Edge cases (approved 2026-10-09)
+1. Active rows' ⋯ menu: **Edit**, then **Delete** (danger style, last). Deleted rows keep Restore only.
+2. Dialog: title "Delete Ahmed Zaki?", text "They'll be hidden from the list. You can restore them from Show deleted.", buttons **Cancel** and **Delete** (danger). Focus starts on Cancel.
+3. Confirm sends `DELETE /employees/:id`; while pending, Delete shows loading, both buttons are disabled and Esc does nothing.
+4. Success: dialog closes, toast "Ahmed Zaki deleted", list refetches; focus moves to the next row's ⋯ button, else the previous row's, else "New employee".
+5. If that empties the current page and it isn't page 1 → previous page.
+6. 422 (last active HR): dialog stays open with the server's message as an alert; Delete is disabled; Cancel reads **Close**.
+7. 404 (already deleted elsewhere): dialog closes, toast "This employee was already deleted", list refetches.
+8. Any other error: dialog stays open with an error alert; Delete stays enabled so HR can retry.
+9. Menu keyboard gap from deep-dive 1: ArrowDown, Enter or Space on a closed ⋯ button opens the menu with focus on the first item; ArrowUp opens it on the last item.
+
 ## To decide in the deep-dives (not yet)
 - **Form:** field order, which fields are editable after create, phone input format help, salary input (currency label? thousands separators?), hire date max = today in which time zone on the client, profile image upload inside the drawer, unsaved-changes guard on close.
 - **Errors & feedback:** which server errors show inline vs toast (409 email, 422 last HR), retry behaviour, optimistic updates or not.

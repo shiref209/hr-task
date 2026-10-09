@@ -4,6 +4,7 @@ import './menu.scss';
 interface MenuItem {
   label: string;
   onSelect: () => void;
+  tone?: 'danger';
 }
 
 interface MenuProps {
@@ -28,6 +29,15 @@ export function Menu({ label, items }: MenuProps) {
     return () => document.removeEventListener('pointerdown', closeOnOutside);
   }, [open]);
 
+  const focusOnOpen = useRef<'first' | 'last'>(undefined);
+
+  useEffect(() => {
+    if (!open || !focusOnOpen.current) return;
+    const entries = rootRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+    (focusOnOpen.current === 'first' ? entries?.[0] : entries?.[entries.length - 1])?.focus();
+    focusOnOpen.current = undefined;
+  }, [open]);
+
   const close = () => {
     setOpen(false);
     triggerRef.current?.focus();
@@ -42,6 +52,7 @@ export function Menu({ label, items }: MenuProps) {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
     event.preventDefault();
     if (!open) {
+      focusOnOpen.current = event.key === 'ArrowDown' ? 'first' : 'last';
       setOpen(true);
       return;
     }
@@ -65,7 +76,11 @@ export function Menu({ label, items }: MenuProps) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        onClick={() => setOpen((current) => !current)}
+        onClick={(event) => {
+          // detail 0 = keyboard-initiated click (Enter/Space): land on the first item.
+          if (!open && event.detail === 0) focusOnOpen.current = 'first';
+          setOpen((current) => !current);
+        }}
       >
         <span aria-hidden="true">⋯</span>
       </button>
@@ -76,7 +91,7 @@ export function Menu({ label, items }: MenuProps) {
               key={item.label}
               type="button"
               role="menuitem"
-              className="menu__item"
+              className={item.tone ? `menu__item menu__item--${item.tone}` : 'menu__item'}
               onClick={() => {
                 item.onSelect();
                 close();

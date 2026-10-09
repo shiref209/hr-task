@@ -10,6 +10,8 @@ interface ConfirmDialogProps {
   cancelLabel?: string;
   tone?: 'default' | 'danger';
   isConfirming?: boolean;
+  confirmDisabled?: boolean;
+  error?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -22,6 +24,8 @@ export function ConfirmDialog({
   cancelLabel = 'Cancel',
   tone = 'default',
   isConfirming = false,
+  confirmDisabled = false,
+  error,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -32,7 +36,11 @@ export function ConfirmDialog({
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      dialog.showModal();
+      // Safe default for destructive confirms: start on the first action (Cancel).
+      dialog.querySelector<HTMLElement>('.confirm-dialog__actions button')?.focus();
+    }
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
@@ -57,6 +65,11 @@ export function ConfirmDialog({
         <p id={descriptionId} className="confirm-dialog__description">
           {description}
         </p>
+        {error ? (
+          <p role="alert" className="confirm-dialog__error">
+            {error}
+          </p>
+        ) : null}
         <div className="confirm-dialog__actions">
           <Button
             variant="secondary"
@@ -69,6 +82,7 @@ export function ConfirmDialog({
             variant={tone === 'danger' ? 'danger' : 'primary'}
             onClick={onConfirm}
             isLoading={isConfirming}
+            disabled={confirmDisabled}
           >
             {confirmLabel}
           </Button>

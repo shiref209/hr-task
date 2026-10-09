@@ -11,10 +11,11 @@ interface EmployeeListProps {
   busy: boolean;
   onRestore: (employee: Employee) => void;
   onEdit: (employee: Employee) => void;
+  onDelete: (employee: Employee) => void;
 }
 
 // Explicit roles keep table semantics when the mobile styles turn rows into cards (display: block).
-export function EmployeeList({ employees, busy, onRestore, onEdit }: EmployeeListProps) {
+export function EmployeeList({ employees, busy, onRestore, onEdit, onDelete }: EmployeeListProps) {
   return (
     <table className="employee-list" aria-busy={busy}>
       <caption className="visually-hidden">Employees</caption>
@@ -30,7 +31,7 @@ export function EmployeeList({ employees, busy, onRestore, onEdit }: EmployeeLis
       </thead>
       <tbody role="rowgroup">
         {employees.map((employee) => (
-          <tr key={employee.id} role="row" className="employee-list__row">
+          <tr key={employee.id} role="row" className="employee-list__row" data-employee-id={employee.id}>
             <td role="cell" className="employee-list__cell employee-list__cell--name">
               <div className="employee-list__person">
               <Avatar name={employee.fullName} src={resolveAssetUrl(employee.profileImageUrl)} />
@@ -57,7 +58,7 @@ export function EmployeeList({ employees, busy, onRestore, onEdit }: EmployeeLis
               <EmployeeStatusBadge status={employee.status} />
             </td>
             <td role="cell" className="employee-list__cell employee-list__cell--actions">
-              <EmployeeRowActions employee={employee} onRestore={onRestore} onEdit={onEdit} />
+              <EmployeeRowActions employee={employee} onRestore={onRestore} onEdit={onEdit} onDelete={onDelete} />
             </td>
           </tr>
         ))}
