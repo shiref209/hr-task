@@ -44,6 +44,7 @@ Handlers and services **throw small domain errors** and contain **no `try/catch`
 | Malformed JSON body | 400 | `/problems/malformed-request` |
 | `UnauthorizedError` (missing/expired token, bad credentials) | 401 | `/problems/unauthorized` |
 | `ForbiddenError` (wrong role, someone else's payslip) / missing CSRF header | 403 | `/problems/forbidden` |
+| Too many login attempts | 429 | `/problems/too-many-requests` + `Retry-After` header |
 | `NotFoundError` / unknown route | 404 | `/problems/not-found` |
 | `ConflictError` (duplicate email, table in use) | 409 | `/problems/conflict` |
 | Upload too large | 413 | `/problems/payload-too-large` |
@@ -62,7 +63,8 @@ Details worth knowing:
 `apps/web/src/shared/http/http-client.ts`:
 - An axios response interceptor turns **every** non-2xx into an `ApiError` (`status` + the `ProblemDetails` body). No response (offline, CORS) → `ApiError` with status 0 "Network error"; a non-problem body → "Request failed". Components only ever deal with one error type.
 - **Queries** that fail render `<ErrorView>` (`shared/ui/error-view`): the Problem Details `title` / `detail` and a Retry button — never the raw error object.
-- **Forms** map errors back onto fields with `apiErrorToForm()`: 400 → each `errors[field]` under its input; 409 → the conflicting field (e.g. email "already exists"); 422 → a form-level message.
+- **Session expiry:** a 401 triggers one shared `POST /auth/refresh` and a single retry; if refresh fails, the user is sent to `/login?next=…` and the query cache is cleared. Every non-GET request carries `X-Requested-With: hr-payroll`; cookies are sent with `withCredentials`.
+- **Forms** map errors back onto fields with `apiErrorToForm()` and `useServerFormErrors()` (`shared/forms/`): 400 → each `errors[field]` under its input; 409 → the conflicting field (e.g. email "already exists"); 422 → a form-level message shown by `<FormAlert>`, which takes focus so screen readers announce it.
 - **Mutations** report success and generic failures through toasts.
 - TanStack Query retries a failed query once; window-focus refetching is off.
 

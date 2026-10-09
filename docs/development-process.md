@@ -12,7 +12,7 @@ The project was built with **spec-driven development (SDD)** combined with **tes
 | 3. **Red** | Every confirmed edge case becomes a failing test first | Schema, unit and e2e tests |
 | 4. **Green** | The smallest implementation that makes the tests pass: reuse what exists, stdlib/platform first | Production code |
 | 5. **Refactor & verify** | `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm --filter api test:e2e`, then a review against the spec | Green suite, review notes |
-| 6. **Commit** | Small Conventional Commits, one logical change each | Git history |
+| 6. **Commit** | Small Conventional Commits, one logical change each; [CI](ci.md) re-runs every gate on push to `main` | Git history, green CI |
 
 **Why SDD:** the spec settles product questions (e.g. marginal vs flat tax, is the cap on the base or the contribution, can net go negative) *before* code, so the tests encode agreed behaviour rather than guesses. The implementation contract in each spec fixes names up front so tests and code are written against the same interface.
 
@@ -51,5 +51,5 @@ pnpm typecheck && pnpm lint
 
 Not covered automatically: the Prisma repositories and local file storage (they need a real database/disk); verified by manual smoke runs.
 
-## AI-assisted
-Built with Claude Code coordinating specialised sub-agents (`.claude/agents/`) and skills (`spec-driven-development`, `test-driven-development`, `code-review-and-quality`). The developer made every product and design decision recorded in the specs and approved every commit. See the README's *AI usage* section.
+## AI usage
+Built with Claude Code under the rules in [`CLAUDE.md`](../CLAUDE.md): every spec and edge case was decided by the developer before any code, tests were the acceptance contract, a validator agent checked each slice against its spec, and every commit was approved individually. See the README's [AI usage](../README.md#ai-usage) section.

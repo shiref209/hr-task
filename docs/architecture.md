@@ -60,11 +60,12 @@ apps/web/src/
   features/<feature>/
     api/                  axios calls + TanStack Query hooks + query keys
     components/           presentational components, no business logic
-    form/                 form ↔ schema mapping, server-error → field-error mapping
+    form/                 form values ↔ schema mapping
     pages/                route-level composition
     <feature>.scss        styles colocated with the feature
   shared/
-    http/                 axios client + ApiError
+    http/                 axios client + ApiError, CSRF header, one shared refresh on 401
+    forms/                schema resolver, server-error → field mapping, discard-changes guard
     ui/                   design system (Button, TextInput, Drawer, Toast, Pagination, ErrorView, …)
     theme/                design tokens (CSS custom properties) + breakpoints
     format/ · hooks/      money/date formatting, debounced value

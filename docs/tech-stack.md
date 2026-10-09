@@ -11,6 +11,7 @@ Rule followed: no library for something a few lines or the platform can do; ever
 | TypeScript (`strict`) | One language across API, web and shared types; no `any` |
 | Prettier | One formatting style |
 | Docker Compose (PostgreSQL 17) | Same database for everyone with one command |
+| GitHub Actions | CI on every push to `main`: lint, typecheck, tests, build ([CI](ci.md)) |
 
 ## Shared — `@hr/types`
 | Package | Why |
@@ -28,6 +29,7 @@ Rule followed: no library for something a few lines or the platform can do; ever
 | @nestjs/swagger | Serves Swagger UI; schemas come from Zod via `z.toJSONSchema`, not decorators |
 | @nestjs/jwt | Signs and verifies access tokens |
 | cookie-parser | Reads the httpOnly auth cookies |
+| @nestjs/throttler | Login rate limits (per IP + email, per IP, per email), applied only to `POST /auth/login` |
 | rxjs, reflect-metadata | NestJS runtime requirements |
 | Jest + ts-jest | Nest's default test runner |
 | Supertest | Drives the real HTTP stack in e2e tests |

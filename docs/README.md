@@ -3,6 +3,7 @@
 Each point below links to one document. Read them in order for a full tour, or jump to the one you need.
 
 1. **[Getting started](getting-started.md)** — prerequisites, environment, the scripts to run in order, demo accounts and a walkthrough to test the whole flow.
+   - **[Local setup: database & environment credentials](database-and-env.md)** — filling `.env`, generating the JWT secret, running PostgreSQL in Docker, troubleshooting.
 2. **[Architecture](architecture.md)** — pnpm monorepo, folder structure, feature modules with dependency inversion, how a request flows.
 3. **[Shared types & schemas](shared-contract.md)** — the `@hr/types` package: Zod schemas shared by API, web and the OpenAPI docs.
 4. **[API responses & error handling](api-responses-and-errors.md)** — the `{ data, meta }` envelope, RFC 7807 Problem Details, the global error filter on the API and the single error path on the web.
@@ -13,6 +14,7 @@ Each point below links to one document. Read them in order for a full tour, or j
 9. **[Design system](design-system.md)** — tokens, components and usage examples; dev-only preview at http://localhost:5173/design-system.
 10. **[Tech stack & packages](tech-stack.md)** — every package per app with a one-line justification, and what was deliberately left out.
 11. **[Development process](development-process.md)** — spec-driven development with test-driven development, the per-feature gate and the test suites.
+12. **[Continuous integration](ci.md)** — the GitHub Actions workflow: lint, typecheck, unit + e2e tests and build on every push to `main`.
 
 Other references:
 - [`openapi.json`](openapi.json) — committed OpenAPI spec (live Swagger UI at http://localhost:3000/docs).
