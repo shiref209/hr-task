@@ -1,6 +1,6 @@
 # Spec: Design System (web)
 
-Status: **decisions recorded — awaiting edge-case sign-off**
+Status: **approved 2026-10-08**
 
 ## Objective
 A small, themed set of reusable UI primitives so every feature screen is built from the same parts, with **no hard-coded colors, font sizes, font colors or spacing** anywhere outside the theme. Mobile first, flexbox, accessible.

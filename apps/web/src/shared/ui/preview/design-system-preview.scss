@@ -1,0 +1,31 @@
+@use '../../theme/breakpoints' as *;
+
+.ds-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+
+  @include up(md) {
+    padding: var(--space-6);
+  }
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  &__swatch {
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+
+    &--dark {
+      color: var(--color-primary-ink);
+    }
+  }
+}

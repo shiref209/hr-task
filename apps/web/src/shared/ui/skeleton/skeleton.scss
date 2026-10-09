@@ -1,0 +1,48 @@
+.skeleton-group {
+  display: flex;
+  flex: 1 1 auto; // fill the inline space in both row and column parents
+  min-inline-size: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  // Short last line only when there are several lines.
+  .skeleton--text:last-child:not(:first-child) {
+    width: 60%;
+  }
+}
+
+.skeleton {
+  display: block;
+  background: linear-gradient(
+      90deg,
+      var(--color-border),
+      var(--color-background),
+      var(--color-border)
+    )
+    0 0 / 200% 100%;
+  // 0ms under prefers-reduced-motion freezes the shimmer
+  animation: skeleton-shimmer calc(var(--duration-normal) * 6) linear infinite;
+
+  &--text {
+    height: var(--font-size-md);
+    border-radius: var(--radius-sm);
+  }
+
+  &--rect {
+    align-self: stretch;
+    min-height: var(--space-8);
+    border-radius: var(--radius-md);
+  }
+
+  &--circle {
+    width: var(--size-avatar-md);
+    height: var(--size-avatar-md);
+    border-radius: var(--radius-full);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}

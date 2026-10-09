@@ -1,0 +1,46 @@
+@use '../../theme/breakpoints' as *;
+
+.confirm-dialog {
+  max-width: calc(100% - var(--space-6));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+
+  &::backdrop {
+    background: var(--color-overlay);
+  }
+
+  @include up(sm) {
+    max-width: calc(100% - var(--space-8));
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+  }
+
+  &__title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__description {
+    color: var(--color-text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-2);
+
+    @include up(sm) {
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+  }
+}

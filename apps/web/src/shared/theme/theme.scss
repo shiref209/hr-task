@@ -1,0 +1,107 @@
+:root {
+  --color-primary: #0d21a1;
+  --color-primary-ink: #fff;
+  --color-primary-subtle: #e8ebfa;
+  --color-secondary: #011638;
+  --color-accent: #eec643;
+  --color-accent-ink: #141414;
+
+  --color-text: #141414;
+  --color-text-muted: #5b6472;
+  --color-background: #eef0f2;
+  --color-surface: #fff;
+  --color-border: #d0d5dd;
+  --color-border-strong: #7b8493; // 3:1 against white, for input boundaries
+  --color-overlay: rgb(1 22 56 / 55%);
+
+  // Text colours; AA (4.5:1) on white and on their -subtle backgrounds.
+  --color-danger: #b42318;
+  --color-danger-subtle: #fdecea;
+  --color-success: #157347;
+  --color-success-subtle: #e6f4ec;
+  --color-warning: #7a5a00; // the accent itself (#eec643) is only 1.6:1 on white
+  --color-warning-subtle: #fdf3d0;
+
+  --font-family: 'Inter Variable', system-ui, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgb(1 22 56 / 12%);
+  --shadow-md: 0 4px 12px rgb(1 22 56 / 18%);
+  --border-width: 1px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  --size-avatar-sm: 2rem;
+  --size-avatar-md: 2.5rem;
+  --size-avatar-lg: 3.5rem;
+  --size-icon: 1.25rem;
+
+  --duration-fast: 120ms;
+  --duration-normal: 240ms;
+
+  --z-toast: 1100;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  line-height: var(--line-height-tight);
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary);
+  outline-offset: var(--focus-ring-offset);
+}
