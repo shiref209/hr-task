@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createEmployeeSchema,
   employeeListQuerySchema,
@@ -20,6 +20,12 @@ function validInput(overrides: Record<string, unknown> = {}) {
     baseSalary: '5000.00',
     ...overrides,
   };
+}
+
+// Fixed local "today" = 2026-10-08 (noon local, so no UTC/local day drift).
+function freezeToday() {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(2026, 9, 8, 12, 0, 0));
 }
 
 function emailOfLength(length: number): string {
@@ -210,18 +216,30 @@ describe('createEmployeeSchema', () => {
   });
 
   describe('hireDate', () => {
+    beforeEach(freezeToday);
+    afterEach(() => vi.useRealTimers());
+
     it('accepts a past date', () => {
       expect(createOk({ hireDate: '2026-10-07' })).toBe(true);
     });
 
-    it('accepts tomorrow (future dates are allowed)', () => {
-      const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-      expect(createOk({ hireDate: d.toISOString().slice(0, 10) })).toBe(true);
+    it('accepts today (local date)', () => {
+      expect(createOk({ hireDate: '2026-10-08' })).toBe(true);
     });
 
-    it('accepts 2030-06-01 (no upper limit)', () => {
-      expect(createOk({ hireDate: '2030-06-01' })).toBe(true);
+    it('rejects tomorrow with a "future" message at hireDate', () => {
+      const result = createSchema.safeParse(validInput({ hireDate: '2026-10-09' }));
+
+      expect(result.success ? [] : result.error.issues).toEqual([
+        expect.objectContaining({
+          path: ['hireDate'],
+          message: expect.stringMatching(/future/i),
+        }),
+      ]);
+    });
+
+    it('rejects 2030-06-01', () => {
+      expect(createFails({ hireDate: '2030-06-01' }, 'hireDate')).toBe(true);
     });
 
     it('accepts a leap day in a leap year', () => {
@@ -359,10 +377,32 @@ describe('updateEmployeeSchema', () => {
     );
   });
 
-  it('accepts a future hireDate', () => {
-    expect(updateSchema.safeParse({ hireDate: '2030-06-01' }).success).toBe(
-      true,
-    );
+  describe('hireDate (today = 2026-10-08)', () => {
+    beforeEach(freezeToday);
+    afterEach(() => vi.useRealTimers());
+
+    it('rejects a future hireDate with a "future" message', () => {
+      const result = updateSchema.safeParse({ hireDate: '2030-06-01' });
+
+      expect(result.success ? [] : result.error.issues).toEqual([
+        expect.objectContaining({
+          path: ['hireDate'],
+          message: expect.stringMatching(/future/i),
+        }),
+      ]);
+    });
+
+    it('accepts today', () => {
+      expect(updateSchema.safeParse({ hireDate: '2026-10-08' }).success).toBe(true);
+    });
+
+    it('accepts hireDate omitted (keeps the value)', () => {
+      expect(updateSchema.parse({ jobTitle: 'Lead' })).not.toHaveProperty('hireDate');
+    });
+
+    it('rejects hireDate null', () => {
+      expect(issuePaths(updateSchema, { hireDate: null })).toContain('hireDate');
+    });
   });
 
   it('rejects a non-existent hireDate', () => {

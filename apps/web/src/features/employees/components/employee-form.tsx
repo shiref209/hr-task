@@ -1,4 +1,4 @@
-import type { Department } from '@hr/types';
+import { localToday, type Department } from '@hr/types';
 import { useEffect, useRef, useState } from 'react';
 import { useForm, useWatch, type Path } from 'react-hook-form';
 import { formatAmount } from '../../../shared/format/format-amount';
@@ -109,6 +109,7 @@ export function EmployeeForm({
       <TextInput
         label="Hire date"
         type="date"
+        max={localToday()}
         required
         error={errors.hireDate?.message}
         {...register('hireDate')}

@@ -35,6 +35,14 @@ const PNG_HEADER = Buffer.from([
 const pngOfSize = (size: number) =>
   Buffer.concat([PNG_HEADER, Buffer.alloc(size - PNG_HEADER.length)]);
 
+// The schema compares against the runtime's local date; compute it the same way
+// (real clock, no fake timers, which would stall Nest/Supertest I/O).
+function localToday(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 function validBody(overrides: Record<string, unknown> = {}) {
   return {
     fullName: 'Ada Lovelace',
@@ -142,21 +150,23 @@ describe('Employees (e2e)', () => {
       expect(res.body.errors).toHaveProperty('baseSalary');
     });
 
-    it('accepts a future hire date (201)', async () => {
+    it('returns 400 with errors.hireDate for a future hire date', async () => {
       await boot();
 
-      await http()
+      const res = await http()
         .post('/employees')
         .send(validBody({ hireDate: '2030-06-01' }))
-        .expect(201);
+        .expect(400);
+
+      expect(res.body.errors).toHaveProperty('hireDate');
     });
 
-    it('accepts a hire date equal to today', async () => {
+    it('accepts a hire date equal to today (local date)', async () => {
       await boot();
 
       await http()
         .post('/employees')
-        .send(validBody({ hireDate: '2026-10-08' }))
+        .send(validBody({ hireDate: localToday() }))
         .expect(201);
     });
 
@@ -409,6 +419,30 @@ describe('Employees (e2e)', () => {
         .expect(400);
 
       expect(res.body.errors).toEqual({ deletedAt: ['Unknown field'] });
+    });
+
+    it('returns 400 with errors.hireDate for hireDate null', async () => {
+      const employee = anEmployee();
+      await boot([employee]);
+
+      const res = await http()
+        .patch(`/employees/${employee.id}`)
+        .send({ hireDate: null })
+        .expect(400);
+
+      expect(res.body.errors).toHaveProperty('hireDate');
+    });
+
+    it('returns 400 with errors.hireDate for a future hireDate', async () => {
+      const employee = anEmployee();
+      await boot([employee]);
+
+      const res = await http()
+        .patch(`/employees/${employee.id}`)
+        .send({ hireDate: '2030-06-01' })
+        .expect(400);
+
+      expect(res.body.errors).toHaveProperty('hireDate');
     });
 
     it('returns 400 for a malformed id', async () => {

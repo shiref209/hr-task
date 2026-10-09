@@ -87,7 +87,7 @@ Every feature follows the same gate (written in [`CLAUDE.md`](CLAUDE.md)): **spe
 - HR is the admin role. The last *active, non-deleted* HR cannot be deleted, deactivated or demoted (422).
 - Delete is **soft**; an email stays unique forever, so re-hiring someone means restoring their record.
 - Email is case-insensitive (stored lowercased). Phone is optional, E.164 (`+201001234567`); spaces and dashes are stripped.
-- Hire date may be in the past or the future (planned joiners); it must be a real calendar date. A future hire can be Active — payroll will refuse months before the hire date.
+- Hire date is required and can't be in the future; "today" is the runtime's local date (the API container runs with `TZ=Africa/Cairo`).
 - Base salary is > 0 with at most 2 decimals; input is never rounded.
 - Departments are a seeded, read-only list.
 - Profile images: JPEG/PNG/WebP detected from the file's bytes (not its name), max 2 MB, stored on local disk.

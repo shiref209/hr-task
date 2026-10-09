@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { localToday } from '../common/dates';
 import { paginationQuerySchema } from '../common/pagination';
 
 export const employeeStatusSchema = z.enum(['ACTIVE', 'INACTIVE'], {
@@ -79,13 +80,17 @@ const baseSalary = z
   .regex(/^\d{1,10}(\.\d{1,2})?$/, SALARY_MESSAGE)
   .refine((value) => /[1-9]/.test(value), SALARY_MESSAGE);
 
+const hireDate = z.iso
+  .date({ error: 'Enter a valid date' })
+  .refine((value) => value <= localToday(), "Hire date can't be in the future");
+
 const fields = {
   fullName: requiredText('Full name'),
   email,
   phone,
   jobTitle: requiredText('Job title'),
   departmentId: z.uuid({ error: 'Select a department' }),
-  hireDate: z.iso.date({ error: 'Enter a valid date' }),
+  hireDate,
   baseSalary,
   status: employeeStatusSchema,
   type: employeeTypeSchema,

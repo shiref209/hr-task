@@ -126,7 +126,7 @@ apps/web/src/
 1. "+ New employee" moves to the page header (and stays in the "No employees yet" empty state); it opens the create drawer with focus on Full name. Active rows' ⋯ menu gains **Edit**.
 2. Field order: Full name, Email, Base salary, Job title, Department, Hire date, Phone, Status, Type. Required fields marked. Create defaults: Status Active, Type Employee.
 3. Validation uses the shared schemas (`createEmployeeSchema` / `updateEmployeeSchema`): on blur per field and on submit; submit shows every error at once and focuses the first invalid field.
-4. Hire date is a native date input with no `max` — future dates are allowed (changed 2026-10-09: future hire dates allowed for planned joiners; no upper limit).
+4. Hire date is a native date input with `max` = today (browser's local date); a future date shows the schema's error (changed again 2026-10-09: future hire dates are not allowed; "today" is the runtime's local date — API container runs with TZ=Africa/Cairo).
 5. Salary: `12,500.5` → shown `12,500.50`, sent `12500.50`. Invalid input (e.g. `12.345`, `abc`, `0`) stays as typed with the schema's error.
 6. Phone is optional: empty → `null` (clears it on edit).
 7. Edit opens with the drawer showing a skeleton while `GET /employees/:id` loads. If that returns 404 → toast "This employee no longer exists", drawer closes, list refetches.

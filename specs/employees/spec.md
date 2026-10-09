@@ -14,7 +14,7 @@ HR manages employee records: create, list (paginated, searchable, filterable), v
 | phone | string \| null | **optional**; E.164 (`+` then 8–15 digits, first digit 1–9); spaces/dashes/parentheses stripped before validating; empty string → null |
 | jobTitle | string | required, trimmed, 1–100 |
 | departmentId | uuid | required, must reference an existing department (unknown → 400 on `departmentId`) |
-| hireDate | date (`YYYY-MM-DD`) | required, a real calendar date (`2026-02-30` → 400); **may be in the future** (changed 2026-10-09: future hire dates allowed for planned joiners; no upper limit) |
+| hireDate | date (`YYYY-MM-DD`) | **required**; a real calendar date (`2026-02-30` → 400); **not after today** (changed again 2026-10-09: future hire dates are not allowed; "today" is the runtime's local date — API container runs with TZ=Africa/Cairo); on update it may be omitted (keeps the current value) but never null |
 | baseSalary | Decimal `NUMERIC(12,2)`, string in JSON | required, **> 0**, max 2 decimal places, ≤ 9,999,999,999.99 |
 | status | `ACTIVE` \| `INACTIVE` | default `ACTIVE` |
 | type | `HR` \| `EMPLOYEE` | default `EMPLOYEE` (HR = admin) |
@@ -116,7 +116,7 @@ No `domain/` folder here: employees has no pure business-rule engine (the last-H
 ## Edge cases (proposed — confirm)
 1. Email uniqueness is case-insensitive: `A@x.com` after `a@x.com` → 409.
 2. `PATCH` with a body containing an email already used by **another** employee → 409; the employee's own email → OK.
-3. Hire date today and in the future are valid (changed 2026-10-09: future hire dates allowed for planned joiners; no upper limit).
+3. Hire date today is valid; tomorrow → 400 (changed again 2026-10-09: future hire dates are not allowed; "today" is the runtime's local date — API container runs with TZ=Africa/Cairo). `hireDate: null` on update → 400.
 4. `baseSalary: "0"` → 400; `"0.01"` → OK; `"10.005"` → 400 (no rounding of input); numeric JSON `5000` → 400 (money must be a string).
 5. Names are trimmed; whitespace-only → 400; exactly 100 chars OK, 101 → 400.
 6. Malformed id (`/employees/abc`) → 400; well-formed but missing → 404.
