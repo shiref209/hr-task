@@ -1,19 +1,7 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import type { Employee } from '@hr/types';
-import { AuthModule } from '../src/auth/auth.module';
-import { CLOCK } from '../src/common/clock';
-import { configureApp } from '../src/configure-app';
-import { DepartmentsModule } from '../src/departments/departments.module';
-import { DEPARTMENT_REPOSITORY } from '../src/departments/departments.repository';
-import { EmployeesModule } from '../src/employees/employees.module';
-import { EMPLOYEE_REPOSITORY } from '../src/employees/employees.repository';
-import { FILE_STORAGE } from '../src/employees/profile-image/file-storage';
-import { PAY_ITEM_REPOSITORY } from '../src/payroll/pay-items/pay-items.repository';
-import { PayrollModule } from '../src/payroll/payroll.module';
-import { SOCIAL_INSURANCE_REPOSITORY } from '../src/payroll/social-insurance/social-insurance.repository';
-import { TAX_TABLE_REPOSITORY } from '../src/payroll/tax-tables/tax-tables.repository';
-import { authCookie, httpAs, withAuthFakes } from './auth';
+import { createTestApp } from './create-test-app';
+import { authCookie, httpAs } from './auth';
 import {
   aDeletedEmployee,
   anActiveHr,
@@ -24,11 +12,7 @@ import {
   InMemoryUserRepository,
 } from './fakes/in-memory-user-repository';
 import { USER_REPOSITORY } from '../src/auth/users.repository';
-import { FixedClock } from './fakes/fixed-clock';
-import { InMemoryDepartmentRepository } from './fakes/in-memory-department-repository';
 import { InMemoryEmployeeRepository } from './fakes/in-memory-employee-repository';
-import { InMemoryFileStorage } from './fakes/in-memory-file-storage';
-import { InMemoryPayItemRepository } from './fakes/in-memory-pay-item-repository';
 import { InMemorySocialInsuranceRepository } from './fakes/in-memory-social-insurance-repository';
 import { InMemoryTaxTableRepository } from './fakes/in-memory-tax-table-repository';
 import {
@@ -92,41 +76,19 @@ describe('Authorization (e2e)', () => {
         name: t.name,
       })),
     );
-    const moduleRef = await withAuthFakes(
-      Test.createTestingModule({
-        imports: [
-          AuthModule,
-          EmployeesModule,
-          DepartmentsModule,
-          PayrollModule,
-        ],
-      }),
-      [hrUser, meUser, ...Object.values(hrUsers)],
-    )
-      .overrideProvider(EMPLOYEE_REPOSITORY)
-      .useValue(employees)
-      .overrideProvider(DEPARTMENT_REPOSITORY)
-      .useValue(new InMemoryDepartmentRepository())
-      .overrideProvider(FILE_STORAGE)
-      .useValue(new InMemoryFileStorage())
-      .overrideProvider(TAX_TABLE_REPOSITORY)
-      .useValue(
-        new InMemoryTaxTableRepository(
-          [defaultTable, overrideTable, spareTable],
-          employees,
-        ),
-      )
-      .overrideProvider(SOCIAL_INSURANCE_REPOSITORY)
-      .useValue(new InMemorySocialInsuranceRepository(aSocialInsurance()))
-      .overrideProvider(PAY_ITEM_REPOSITORY)
-      .useValue(new InMemoryPayItemRepository())
-      .overrideProvider(CLOCK)
-      .useValue(new FixedClock(new Date('2026-10-08T10:00:00.000Z')))
-      .compile();
-    userRepo = moduleRef.get<InMemoryUserRepository>(USER_REPOSITORY);
-    app = moduleRef.createNestApplication();
-    configureApp(app);
-    await app.init();
+    const testApp = await createTestApp({
+      users: [hrUser, meUser, ...Object.values(hrUsers)],
+      employees,
+      taxTables: new InMemoryTaxTableRepository(
+        [defaultTable, overrideTable, spareTable],
+        employees,
+      ),
+      socialInsurance: new InMemorySocialInsuranceRepository(
+        aSocialInsurance(),
+      ),
+    });
+    app = testApp.app;
+    userRepo = testApp.moduleRef.get<InMemoryUserRepository>(USER_REPOSITORY);
   });
   afterAll(async () => {
     await app.close();

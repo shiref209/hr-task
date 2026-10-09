@@ -1,29 +1,13 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AuthModule } from '../src/auth/auth.module';
-import { CLOCK } from '../src/common/clock';
-import { configureApp } from '../src/configure-app';
-import { DepartmentsModule } from '../src/departments/departments.module';
-import { DEPARTMENT_REPOSITORY } from '../src/departments/departments.repository';
 import { setupSwagger } from '../src/docs/openapi';
-import { EmployeesModule } from '../src/employees/employees.module';
-import { EMPLOYEE_REPOSITORY } from '../src/employees/employees.repository';
-import { FILE_STORAGE } from '../src/employees/profile-image/file-storage';
 import {
   ENGINEERING,
   FINANCE,
   HUMAN_RESOURCES,
 } from './fakes/employee.builder';
-import { withAuthFakes } from './auth';
-import { FixedClock } from './fakes/fixed-clock';
+import { createTestApp } from './create-test-app';
 import { InMemoryDepartmentRepository } from './fakes/in-memory-department-repository';
-import { InMemoryEmployeeRepository } from './fakes/in-memory-employee-repository';
-import { InMemoryFileStorage } from './fakes/in-memory-file-storage';
-import { TAX_TABLE_REPOSITORY } from '../src/payroll/tax-tables/tax-tables.repository';
-import { SOCIAL_INSURANCE_REPOSITORY } from '../src/payroll/social-insurance/social-insurance.repository';
-import { InMemoryTaxTableRepository } from './fakes/in-memory-tax-table-repository';
-import { InMemorySocialInsuranceRepository } from './fakes/in-memory-social-insurance-repository';
 
 type Obj = Record<string, unknown>;
 
@@ -38,30 +22,14 @@ const at = (o: unknown, ...keys: string[]): unknown =>
 const PROBLEM = 'application/problem+json';
 
 async function boot(swaggerEnabled: boolean): Promise<INestApplication> {
-  const moduleRef = await withAuthFakes(
-    Test.createTestingModule({
-      imports: [AuthModule, EmployeesModule, DepartmentsModule],
-    }),
-  )
-    .overrideProvider(TAX_TABLE_REPOSITORY)
-    .useValue(new InMemoryTaxTableRepository())
-    .overrideProvider(SOCIAL_INSURANCE_REPOSITORY)
-    .useValue(new InMemorySocialInsuranceRepository())
-    .overrideProvider(EMPLOYEE_REPOSITORY)
-    .useValue(new InMemoryEmployeeRepository([]))
-    .overrideProvider(DEPARTMENT_REPOSITORY)
-    .useValue(
-      new InMemoryDepartmentRepository([HUMAN_RESOURCES, FINANCE, ENGINEERING]),
-    )
-    .overrideProvider(FILE_STORAGE)
-    .useValue(new InMemoryFileStorage())
-    .overrideProvider(CLOCK)
-    .useValue(new FixedClock(new Date('2026-10-08T10:00:00.000Z')))
-    .compile();
-  const app = moduleRef.createNestApplication();
-  configureApp(app);
-  setupSwagger(app, { enabled: swaggerEnabled });
-  await app.init();
+  const { app } = await createTestApp({
+    departments: new InMemoryDepartmentRepository([
+      HUMAN_RESOURCES,
+      FINANCE,
+      ENGINEERING,
+    ]),
+    beforeInit: (app) => setupSwagger(app, { enabled: swaggerEnabled }),
+  });
   return app;
 }
 

@@ -1,15 +1,6 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import { ProblemType } from '@hr/types';
 import type { Employee } from '@hr/types';
-import { AuthModule } from '../src/auth/auth.module';
-import { CLOCK } from '../src/common/clock';
-import { configureApp } from '../src/configure-app';
-import { DepartmentsModule } from '../src/departments/departments.module';
-import { DEPARTMENT_REPOSITORY } from '../src/departments/departments.repository';
-import { EmployeesModule } from '../src/employees/employees.module';
-import { EMPLOYEE_REPOSITORY } from '../src/employees/employees.repository';
-import { FILE_STORAGE } from '../src/employees/profile-image/file-storage';
 import {
   aDeletedEmployee,
   anActiveHr,
@@ -18,15 +9,11 @@ import {
   FINANCE,
   HUMAN_RESOURCES,
 } from './fakes/employee.builder';
-import { authCookie, httpAs, withAuthFakes } from './auth';
-import { FixedClock } from './fakes/fixed-clock';
+import { createTestApp } from './create-test-app';
+import { authCookie, httpAs } from './auth';
 import { InMemoryDepartmentRepository } from './fakes/in-memory-department-repository';
 import { InMemoryEmployeeRepository } from './fakes/in-memory-employee-repository';
 import { InMemoryFileStorage } from './fakes/in-memory-file-storage';
-import { TAX_TABLE_REPOSITORY } from '../src/payroll/tax-tables/tax-tables.repository';
-import { SOCIAL_INSURANCE_REPOSITORY } from '../src/payroll/social-insurance/social-insurance.repository';
-import { InMemoryTaxTableRepository } from './fakes/in-memory-tax-table-repository';
-import { InMemorySocialInsuranceRepository } from './fakes/in-memory-social-insurance-repository';
 
 const UNKNOWN_ID = '99999999-9999-4999-8999-999999999999';
 const TWO_MB = 2 * 1024 * 1024;
@@ -63,33 +50,15 @@ describe('Employees (e2e)', () => {
 
   async function boot(seed: Employee[] = []) {
     storage = new InMemoryFileStorage();
-    const moduleRef = await withAuthFakes(
-      Test.createTestingModule({
-        imports: [AuthModule, EmployeesModule, DepartmentsModule],
-      }),
-    )
-      .overrideProvider(TAX_TABLE_REPOSITORY)
-      .useValue(new InMemoryTaxTableRepository())
-      .overrideProvider(SOCIAL_INSURANCE_REPOSITORY)
-      .useValue(new InMemorySocialInsuranceRepository())
-      .overrideProvider(EMPLOYEE_REPOSITORY)
-      .useValue(new InMemoryEmployeeRepository(seed))
-      .overrideProvider(DEPARTMENT_REPOSITORY)
-      .useValue(
-        new InMemoryDepartmentRepository([
-          HUMAN_RESOURCES,
-          FINANCE,
-          ENGINEERING,
-        ]),
-      )
-      .overrideProvider(FILE_STORAGE)
-      .useValue(storage)
-      .overrideProvider(CLOCK)
-      .useValue(new FixedClock(new Date('2026-10-08T10:00:00.000Z')))
-      .compile();
-    app = moduleRef.createNestApplication();
-    configureApp(app);
-    await app.init();
+    ({ app } = await createTestApp({
+      employees: new InMemoryEmployeeRepository(seed),
+      departments: new InMemoryDepartmentRepository([
+        HUMAN_RESOURCES,
+        FINANCE,
+        ENGINEERING,
+      ]),
+      fileStorage: storage,
+    }));
   }
 
   afterEach(async () => {
