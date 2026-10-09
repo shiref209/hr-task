@@ -29,6 +29,7 @@ import {
   type EmployeeRepository,
 } from './employees.repository';
 import { FILE_STORAGE, type FileStorage } from './profile-image/file-storage';
+import { findEmployeeOrFail } from './find-employee-or-fail';
 import { detectImageType } from './profile-image/image-type';
 
 export interface UploadedImage {
@@ -63,11 +64,11 @@ export class EmployeesService {
   }
 
   getById(id: string): Promise<Employee> {
-    return this.findActiveOrFail(id);
+    return findEmployeeOrFail(this.employees, id);
   }
 
   async update(id: string, changes: UpdateEmployeeInput): Promise<Employee> {
-    const employee = await this.findActiveOrFail(id);
+    const employee = await findEmployeeOrFail(this.employees, id);
     if (changes.departmentId !== undefined)
       await this.assertDepartmentExists(changes.departmentId);
     if (changes.taxTableId) await this.assertTaxTableExists(changes.taxTableId);
@@ -79,7 +80,7 @@ export class EmployeesService {
   }
 
   async remove(id: string): Promise<void> {
-    const employee = await this.findActiveOrFail(id);
+    const employee = await findEmployeeOrFail(this.employees, id);
     await this.assertNotLastHr(employee);
     await this.employees.update(id, { deletedAt: this.clock.now() });
   }
@@ -94,7 +95,7 @@ export class EmployeesService {
   }
 
   async setProfileImage(id: string, file: UploadedImage): Promise<Employee> {
-    const employee = await this.findActiveOrFail(id);
+    const employee = await findEmployeeOrFail(this.employees, id);
     const type = detectImageType(file.buffer);
     if (!type)
       throw new UnsupportedMediaTypeError(
@@ -109,12 +110,6 @@ export class EmployeesService {
     if (employee.profileImageUrl)
       await this.storage.remove(employee.profileImageUrl);
     return updated;
-  }
-
-  private async findActiveOrFail(id: string): Promise<Employee> {
-    const employee = await this.employees.findById(id);
-    if (!employee) throw new EmployeeNotFoundError();
-    return employee;
   }
 
   private async assertDepartmentExists(id: string): Promise<void> {

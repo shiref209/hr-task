@@ -1,16 +1,17 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  idParamSchema,
-  payslipQuerySchema,
-  payslipSchema,
+  type IdParam,
   type Payslip,
   type PayslipQuery,
+  payslipQuerySchema,
+  payslipSchema,
 } from '@hr/types';
 import type { AuthPrincipal } from '../../auth/auth-principal';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { ForbiddenError } from '../../common/errors/domain-errors';
 import { ZodValidationPipe } from '../../common/http/zod-validation.pipe';
+import { ValidIdParam } from '../../common/http/id-param';
 import {
   apiEnvelope,
   apiIdParam,
@@ -37,7 +38,7 @@ export class PayslipController {
   @apiProblems(400, 401, 403, 404, 422)
   generate(
     @CurrentUser() user: AuthPrincipal,
-    @Param(new ZodValidationPipe(idParamSchema)) { id }: { id: string },
+    @ValidIdParam() { id }: IdParam,
     @Query(new ZodValidationPipe(payslipQuerySchema)) { month }: PayslipQuery,
   ): Promise<Payslip> {
     if (user.role !== 'HR' && user.employeeId !== id)

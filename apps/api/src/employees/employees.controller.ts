@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  Param,
   Patch,
   Post,
   Query,
@@ -21,18 +20,19 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
-  createEmployeeSchema,
-  employeeListQuerySchema,
-  employeeSchema,
-  idParamSchema,
-  toEmployeeSummary,
   type CreateEmployeeInput,
+  createEmployeeSchema,
   type Employee,
   type EmployeeListQuery,
+  employeeListQuerySchema,
+  employeeSchema,
   type EmployeeSummary,
+  type IdParam,
+  toEmployeeSummary,
   type UpdateEmployeeInput,
   updateEmployeeSchema,
 } from '@hr/types';
+import { ValidIdParam } from '../common/http/id-param';
 import {
   apiBody,
   apiEnvelope,
@@ -52,9 +52,6 @@ import { ZodValidationPipe } from '../common/http/zod-validation.pipe';
 import { EmployeesService, type UploadedImage } from './employees.service';
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-
-const IdParam = () => Param(new ZodValidationPipe(idParamSchema));
-type IdParam = { id: string };
 
 // Salary and tax table never leave the server for a non-HR user.
 const forRole = (user: AuthPrincipal, employee: Employee) =>
@@ -104,7 +101,7 @@ export class EmployeesController {
   @apiProblems(400, 401, 404)
   async getById(
     @CurrentUser() user: AuthPrincipal,
-    @IdParam() { id }: IdParam,
+    @ValidIdParam() { id }: IdParam,
   ): Promise<Employee | EmployeeSummary> {
     return forRole(user, await this.employees.getById(id));
   }
@@ -117,7 +114,7 @@ export class EmployeesController {
   @apiEnvelope(employeeSchema)
   @apiProblems(400, 401, 403, 404, 409, 422)
   update(
-    @IdParam() { id }: IdParam,
+    @ValidIdParam() { id }: IdParam,
     @Body(new ZodValidationPipe(updateEmployeeSchema))
     changes: UpdateEmployeeInput,
   ): Promise<Employee> {
@@ -131,7 +128,7 @@ export class EmployeesController {
   @apiIdParam()
   @ApiResponse({ status: 204, description: 'Deleted' })
   @apiProblems(400, 401, 403, 404, 422)
-  remove(@IdParam() { id }: IdParam): Promise<void> {
+  remove(@ValidIdParam() { id }: IdParam): Promise<void> {
     return this.employees.remove(id);
   }
 
@@ -142,7 +139,7 @@ export class EmployeesController {
   @apiIdParam()
   @apiEnvelope(employeeSchema)
   @apiProblems(400, 401, 403, 404, 409)
-  restore(@IdParam() { id }: IdParam): Promise<Employee> {
+  restore(@ValidIdParam() { id }: IdParam): Promise<Employee> {
     return this.employees.restore(id);
   }
 
@@ -174,7 +171,7 @@ export class EmployeesController {
   @apiEnvelope(employeeSchema)
   @apiProblems(400, 401, 403, 404, 413, 415)
   uploadProfileImage(
-    @IdParam() { id }: IdParam,
+    @ValidIdParam() { id }: IdParam,
     @UploadedFile() file: UploadedImage | undefined,
   ): Promise<Employee> {
     if (!file) throw new ValidationError({ file: ['File is required'] });

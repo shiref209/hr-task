@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { PayItems } from '@hr/types';
-import { EmployeeNotFoundError } from '../../employees/employees.errors';
 import {
   EMPLOYEE_REPOSITORY,
   type EmployeeRepository,
 } from '../../employees/employees.repository';
+import { findEmployeeOrFail } from '../../employees/find-employee-or-fail';
 import {
   PAY_ITEM_REPOSITORY,
   type PayItemRepository,
@@ -18,17 +18,12 @@ export class PayItemsService {
   ) {}
 
   async get(employeeId: string): Promise<PayItems> {
-    await this.assertEmployeeExists(employeeId);
+    await findEmployeeOrFail(this.employees, employeeId);
     return this.payItems.findByEmployee(employeeId);
   }
 
   async replace(employeeId: string, items: PayItems): Promise<PayItems> {
-    await this.assertEmployeeExists(employeeId);
+    await findEmployeeOrFail(this.employees, employeeId);
     return this.payItems.replaceForEmployee(employeeId, items);
-  }
-
-  private async assertEmployeeExists(employeeId: string): Promise<void> {
-    if (!(await this.employees.findById(employeeId)))
-      throw new EmployeeNotFoundError();
   }
 }

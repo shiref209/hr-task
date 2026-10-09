@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { appliedTaxTableSchema, type AppliedTaxTable } from '@hr/types';
-import { EmployeeNotFoundError } from '../../employees/employees.errors';
 import {
   EMPLOYEE_REPOSITORY,
   type EmployeeRepository,
 } from '../../employees/employees.repository';
+import { findEmployeeOrFail } from '../../employees/find-employee-or-fail';
 import { resolveAppliedTaxTable } from './resolve-applied-tax-table';
 import {
   TAX_TABLE_REPOSITORY,
@@ -21,8 +21,7 @@ export class MyTaxTableService {
 
   /** The employee's override, else the default table. */
   async forEmployee(employeeId: string): Promise<AppliedTaxTable> {
-    const employee = await this.employees.findById(employeeId);
-    if (!employee) throw new EmployeeNotFoundError();
+    const employee = await findEmployeeOrFail(this.employees, employeeId);
     return appliedTaxTableSchema.parse(
       await resolveAppliedTaxTable(employee, this.taxTables),
     );

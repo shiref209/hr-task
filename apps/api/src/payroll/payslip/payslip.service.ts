@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { formatAmount, type Payslip } from '@hr/types';
-import { EmployeeNotFoundError } from '../../employees/employees.errors';
 import {
   EMPLOYEE_REPOSITORY,
   type EmployeeRepository,
 } from '../../employees/employees.repository';
+import { findEmployeeOrFail } from '../../employees/find-employee-or-fail';
 import { calculatePay } from '../domain/payroll-calculator';
 import {
   PAY_ITEM_REPOSITORY,
@@ -33,8 +33,7 @@ export class PayslipService {
   ) {}
 
   async generate(employeeId: string, month: string): Promise<Payslip> {
-    const employee = await this.employees.findById(employeeId);
-    if (!employee) throw new EmployeeNotFoundError();
+    const employee = await findEmployeeOrFail(this.employees, employeeId);
     if (employee.status !== 'ACTIVE') throw new EmployeeInactiveError();
     // ISO dates and YYYY-MM compare correctly as strings; the hire month counts in full.
     if (employee.hireDate.slice(0, 7) > month)

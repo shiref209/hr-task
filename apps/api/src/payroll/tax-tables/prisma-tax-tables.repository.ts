@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import type { TaxTable, TaxTableInput } from '@hr/types';
 import { PrismaService } from '../../prisma/prisma.service';
+import { translateUniqueViolation } from '../../prisma/translate-unique-violation';
 import {
   TaxTableInUseError,
   TaxTableNameTakenError,
@@ -72,28 +73,33 @@ export class PrismaTaxTablesRepository implements TaxTableRepository {
   }
 
   create({ name, brackets }: TaxTableInput): Promise<TaxTable> {
-    return this.translateUniqueViolation(async () =>
-      toTaxTable(
-        await this.prisma.taxTable.create({
-          data: { name, brackets: { create: toBracketRows(brackets) } },
-          ...withBrackets,
-        }),
-      ),
+    return translateUniqueViolation(
+      async () =>
+        toTaxTable(
+          await this.prisma.taxTable.create({
+            data: { name, brackets: { create: toBracketRows(brackets) } },
+            ...withBrackets,
+          }),
+        ),
+      () => new TaxTableNameTakenError(),
     );
   }
 
   update(id: string, { name, brackets }: TaxTableInput): Promise<TaxTable> {
-    return this.translateUniqueViolation(async () => {
-      const [, row] = await this.prisma.$transaction([
-        this.prisma.taxBracket.deleteMany({ where: { taxTableId: id } }),
-        this.prisma.taxTable.update({
-          where: { id },
-          data: { name, brackets: { create: toBracketRows(brackets) } },
-          ...withBrackets,
-        }),
-      ]);
-      return this.withUnassigned(row);
-    });
+    return translateUniqueViolation(
+      async () => {
+        const [, row] = await this.prisma.$transaction([
+          this.prisma.taxBracket.deleteMany({ where: { taxTableId: id } }),
+          this.prisma.taxTable.update({
+            where: { id },
+            data: { name, brackets: { create: toBracketRows(brackets) } },
+            ...withBrackets,
+          }),
+        ]);
+        return this.withUnassigned(row);
+      },
+      () => new TaxTableNameTakenError(),
+    );
   }
 
   async setDefault(id: string): Promise<void> {
@@ -155,21 +161,5 @@ export class PrismaTaxTablesRepository implements TaxTableRepository {
     return this.prisma.employee.count({
       where: { taxTableId: null, deletedAt: null },
     });
-  }
-
-  // Backstop for the race between the service's name check and the write.
-  private async translateUniqueViolation<T>(
-    write: () => Promise<T>,
-  ): Promise<T> {
-    try {
-      return await write();
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      )
-        throw new TaxTableNameTakenError();
-      throw error;
-    }
   }
 }

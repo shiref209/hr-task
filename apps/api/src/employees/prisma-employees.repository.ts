@@ -6,6 +6,7 @@ import type {
   EmployeeListQuery,
 } from '@hr/types';
 import { PrismaService } from '../prisma/prisma.service';
+import { translateUniqueViolation } from '../prisma/translate-unique-violation';
 import { EmailAlreadyUsedError } from './employees.errors';
 import type {
   EmployeeChanges,
@@ -95,26 +96,30 @@ export class PrismaEmployeesRepository implements EmployeeRepository {
   }
 
   create(input: CreateEmployeeInput): Promise<Employee> {
-    return this.translateUniqueViolation(async () =>
-      toEmployee(
-        await this.prisma.employee.create({
-          data: { ...input, hireDate: toDate(input.hireDate) },
-          ...withDepartment,
-        }),
-      ),
+    return translateUniqueViolation(
+      async () =>
+        toEmployee(
+          await this.prisma.employee.create({
+            data: { ...input, hireDate: toDate(input.hireDate) },
+            ...withDepartment,
+          }),
+        ),
+      () => new EmailAlreadyUsedError(false),
     );
   }
 
   update(id: string, changes: EmployeeChanges): Promise<Employee> {
     const { hireDate, ...rest } = changes;
-    return this.translateUniqueViolation(async () =>
-      toEmployee(
-        await this.prisma.employee.update({
-          where: { id },
-          data: { ...rest, hireDate: hireDate && toDate(hireDate) },
-          ...withDepartment,
-        }),
-      ),
+    return translateUniqueViolation(
+      async () =>
+        toEmployee(
+          await this.prisma.employee.update({
+            where: { id },
+            data: { ...rest, hireDate: hireDate && toDate(hireDate) },
+            ...withDepartment,
+          }),
+        ),
+      () => new EmailAlreadyUsedError(false),
     );
   }
 
@@ -122,21 +127,5 @@ export class PrismaEmployeesRepository implements EmployeeRepository {
     return this.prisma.employee.count({
       where: { type: 'HR', status: 'ACTIVE', deletedAt: null },
     });
-  }
-
-  // Backstop for the race between the service's email check and the write.
-  private async translateUniqueViolation<T>(
-    write: () => Promise<T>,
-  ): Promise<T> {
-    try {
-      return await write();
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      )
-        throw new EmailAlreadyUsedError(false);
-      throw error;
-    }
   }
 }

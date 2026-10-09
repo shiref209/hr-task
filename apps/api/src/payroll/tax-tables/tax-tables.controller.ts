@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  Param,
   Post,
   Put,
 } from '@nestjs/common';
@@ -15,15 +14,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
-  idParamSchema,
-  taxTableInputSchema,
-  taxTableSchema,
+  type IdParam,
   type TaxTable,
   type TaxTableInput,
+  taxTableInputSchema,
+  taxTableSchema,
 } from '@hr/types';
 import { z } from 'zod';
 import { Roles } from '../../auth/roles.decorator';
 import { ZodValidationPipe } from '../../common/http/zod-validation.pipe';
+import { ValidIdParam } from '../../common/http/id-param';
 import {
   apiBody,
   apiEnvelope,
@@ -31,9 +31,6 @@ import {
   apiProblems,
 } from '../../docs/zod-openapi';
 import { TaxTablesService } from './tax-tables.service';
-
-const IdParam = () => Param(new ZodValidationPipe(idParamSchema));
-type IdParam = { id: string };
 
 @ApiTags('Tax tables')
 @ApiCookieAuth()
@@ -70,7 +67,7 @@ export class TaxTablesController {
   @apiEnvelope(taxTableSchema)
   @apiProblems(400, 401, 403, 404, 409, 422)
   update(
-    @IdParam() { id }: IdParam,
+    @ValidIdParam() { id }: IdParam,
     @Body(new ZodValidationPipe(taxTableInputSchema)) input: TaxTableInput,
   ): Promise<TaxTable> {
     return this.taxTables.update(id, input);
@@ -82,7 +79,7 @@ export class TaxTablesController {
   @apiIdParam()
   @apiEnvelope(taxTableSchema)
   @apiProblems(400, 401, 403, 404)
-  setDefault(@IdParam() { id }: IdParam): Promise<TaxTable> {
+  setDefault(@ValidIdParam() { id }: IdParam): Promise<TaxTable> {
     return this.taxTables.setDefault(id);
   }
 
@@ -92,7 +89,7 @@ export class TaxTablesController {
   @apiIdParam()
   @ApiResponse({ status: 204, description: 'Deleted' })
   @apiProblems(400, 401, 403, 404, 409)
-  delete(@IdParam() { id }: IdParam): Promise<void> {
+  delete(@ValidIdParam() { id }: IdParam): Promise<void> {
     return this.taxTables.delete(id);
   }
 }
