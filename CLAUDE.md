@@ -28,7 +28,7 @@ apps/api/src/<feature>/          standard flat Nest module + dependency inversio
   <feature>.errors.ts              domain errors (plain classes, no Nest HttpException)
   domain/                          only for real business rules (e.g. payroll calculator).
                                    Pure TS: no Nest, Prisma or HTTP imports.
-apps/api/src/common/   cross-cutting only: ProblemDetails filter, Zod pipe, health
+apps/api/src/common/   cross-cutting only: ErrorDetailsFilter, Zod pipe, health
 apps/web/src/features/<feature>/
   api/             axios calls + TanStack Query hooks
   components/      presentational; no business logic
@@ -44,6 +44,7 @@ the web app aliases its TS source in `vite.config.ts`.
 ## Commands (root)
 `pnpm dev` · `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm build` · `docker compose up -d db`
 Per package: `pnpm --filter api|web|types <script>`. Nest CLI is pinned to 11.0.10 (12.x fails on Node 22.14).
+Database: Docker Postgres on **5432** (`POSTGRES_PORT` / `DATABASE_URL` in `.env`). A locally installed Postgres on 5432 shadows the container — stop it first. Then `pnpm --filter api db:migrate` and `pnpm --filter api db:seed`.
 
 ## Workflow per feature (gated, do not skip)
 1. **Spec** — use the `spec-driven-development` skill; write `specs/<feature>/spec.md` (objective, scope, API contract, acceptance criteria). Stop for user review.
@@ -82,6 +83,20 @@ If context is missing, a requirement is ambiguous, or an instruction seems wrong
 ## Git
 - **Never commit or push unless the user explicitly asks or approves.** Propose the commit message(s) and wait.
 - Approval covers only the commit it was given for; ask again for the next one.
+- **Commit messages follow the Angular convention and Airbnb's git message guidelines:**
+  ```
+  <type>(<scope>): <subject>
+
+  <body>
+
+  <footer>
+  ```
+  - `type`: `feat` · `fix` · `refactor` · `perf` · `test` · `docs` · `style` · `build` · `ci` · `chore` · `revert`.
+  - `scope`: the feature or package touched (`employees`, `payroll`, `auth`, `api`, `web`, `types`, `db`, `deps`).
+  - Subject: imperative mood ("add", not "added"/"adds"), lowercase first letter (Angular wins over Airbnb's capitalization), no trailing period, header ≤ 72 chars.
+  - Body: separated by a blank line, wrapped at 72 chars, explains *what* and *why* (not how); bullets allowed.
+  - Footer: `BREAKING CHANGE: …`, issue refs, and the Co-Authored-By / session trailers.
+  - One logical change per commit.
 
 ## Security
 Never commit secrets. Real values in gitignored `.env`; keep `.env.example` current.

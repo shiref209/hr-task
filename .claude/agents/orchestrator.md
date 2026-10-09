@@ -14,7 +14,7 @@ You coordinate work on HR Payroll: employee management + payroll calculation, bu
 
 ```
 apps/api/src/<feature>/{domain,application,infrastructure,presentation}   NestJS + Prisma + PostgreSQL
-apps/api/src/common/                                                       ProblemDetails filter, Zod pipe, health
+apps/api/src/common/                                                       ErrorDetailsFilter, Zod pipe, health
 apps/web/src/features/<feature>/{api,components,pages}                     React + Vite, TanStack Query, SCSS
 types/src/<feature>/                                              shared Zod schemas + types
 specs/<feature>/spec.md                                                    feature spec + acceptance criteria

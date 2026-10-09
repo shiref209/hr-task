@@ -35,7 +35,7 @@ apps/api/src/
 |---|---|---|---|
 | 0 | git init, monorepo, docker-compose Postgres, .env.example, .gitignore | 0.5h | `docker compose up db` works |
 | 1 | Payroll domain, test-first (brackets, boundaries, cap, zero allowances, rounding) | 1.5h | tests green, no Nest/DB imports in domain |
-| 2 | Employee schemas in types + repo interface + Prisma repo + CRUD + pagination/search + ProblemDetails filter + Zod pipe + Swagger + seed | 1.5h | Swagger works, validation tests green |
+| 2 | Employee schemas in types + repo interface + Prisma repo + CRUD + pagination/search + ErrorDetailsFilter + Zod pipe + Swagger + seed | 1.5h | Swagger works, validation tests green |
 | 3 | Payslip endpoint | 0.5h | e2e test with in-memory repo |
 | 4 | JWT auth (HR / EMPLOYEE) | 1h | EMPLOYEE gets 403 on another payslip |
 | 5 | Web: list/search/paginate, create/edit, delete confirm, payslip view, error display | 2h | every flow works manually |

@@ -73,7 +73,7 @@ Test behavior the user sees: form validation messages from the shared Zod schema
 - [ ] Domain has no Nest, Prisma or HTTP imports
 - [ ] Services depend on repository interfaces via DI tokens
 - [ ] Inputs validated with shared Zod schemas on the API
-- [ ] Errors flow through the ProblemDetails filter; no try/catch in handlers
+- [ ] Errors flow through the ErrorDetailsFilter; no try/catch in handlers
 - [ ] Money is `Decimal`/`NUMERIC(12,2)`, serialized as strings
 - [ ] Roles enforced server-side
 - [ ] No `any`, no non-null `!`, no hard-coded payroll config or secrets
