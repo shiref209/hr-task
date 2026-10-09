@@ -72,7 +72,8 @@ const fields = (today: string) => ({
   departmentId: z.uuid('Invalid department id'),
   hireDate: z.iso
     .date('Must be a real date as YYYY-MM-DD')
-    .refine((date) => date <= today, 'Cannot be in the future'),
+    .refine((date) => date <= today, 'Cannot be in the future')
+    .describe('Must not be after today in the API time zone (APP_TIMEZONE)'),
   baseSalary,
   status: employeeStatusSchema,
   type: employeeTypeSchema,

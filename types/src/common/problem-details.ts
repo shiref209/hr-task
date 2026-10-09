@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const ProblemType = {
   validationError: '/problems/validation-error',
   malformedRequest: '/problems/malformed-request',
@@ -9,12 +11,13 @@ export const ProblemType = {
 } as const;
 
 /** RFC 7807 error body returned by the API for every non-2xx response. */
-export interface ProblemDetails {
-  type: string;
-  title: string;
-  status: number;
-  detail?: string;
-  instance?: string;
+export const errorDetailsSchema = z.object({
+  type: z.string(),
+  title: z.string(),
+  status: z.number().int(),
+  detail: z.string().optional(),
+  instance: z.string().optional(),
   /** Field path -> messages; validation problems only. */
-  errors?: Record<string, string[]>;
-}
+  errors: z.record(z.string(), z.array(z.string())).optional(),
+});
+export type ProblemDetails = z.infer<typeof errorDetailsSchema>;
