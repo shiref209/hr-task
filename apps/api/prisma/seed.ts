@@ -165,6 +165,47 @@ const employees: SeedEmployee[] = [
   },
 ];
 
+const payItems: Record<string, { allowances: [string, string][]; deductions: [string, string][] }> = {
+  'omar.farouk@example.com': {
+    allowances: [['Transport', '1500.00'], ['Housing', '3000.00']],
+    deductions: [['Loan repayment', '500.00']],
+  },
+  'laila.mansour@example.com': { allowances: [['Transport', '1500.00']], deductions: [] },
+  'salma.hegazy@example.com': {
+    allowances: [['Housing', '2000.00']],
+    deductions: [['Loan repayment', '500.00'], ['Loan repayment', '750.00']],
+  },
+  'tarek.samir@example.com': {
+    allowances: [['Transport', '1500.00'], ['Sales commission', '2500.00']],
+    deductions: [],
+  },
+  // Deductions exceed what is left after tax + insurance (spec edge case 13):
+  // base 15000: tax 500, insurance 1650 -> 12850 available, 15000 requested, 2150 unapplied.
+  'mariam.khaled@example.com': { allowances: [], deductions: [['Salary advance', '15000.00']] },
+};
+
+async function seedPayroll(): Promise<void> {
+  // Standard table and social insurance come from the payroll_defaults migration.
+  // Table names are unique case-insensitively via a raw index, so find-then-create.
+  const exemptExists = await prisma.taxTable.findFirst({ where: { name: { equals: 'Exempt', mode: 'insensitive' } } });
+  if (!exemptExists)
+    await prisma.taxTable.create({
+      data: { name: 'Exempt', isDefault: false, brackets: { create: [{ position: 0, upTo: null, rate: '0' }] } },
+    });
+
+  for (const [email, { allowances, deductions }] of Object.entries(payItems)) {
+    const employee = await prisma.employee.findUniqueOrThrow({ where: { email } });
+    const rows = [
+      ...allowances.map(([name, amount]) => ({ kind: 'ALLOWANCE' as const, name, amount })),
+      ...deductions.map(([name, amount]) => ({ kind: 'DEDUCTION' as const, name, amount })),
+    ].map((row, position) => ({ ...row, position, employeeId: employee.id }));
+    await prisma.$transaction([
+      prisma.employeePayItem.deleteMany({ where: { employeeId: employee.id } }),
+      prisma.employeePayItem.createMany({ data: rows }),
+    ]);
+  }
+}
+
 async function main(): Promise<void> {
   const departmentIds = new Map<string, string>();
   for (const name of departments) {
@@ -186,6 +227,8 @@ async function main(): Promise<void> {
       create: fields,
     });
   }
+
+  await seedPayroll();
 }
 
 main()
