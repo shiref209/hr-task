@@ -1,6 +1,6 @@
 # Spec: Employees — CRUD (API)
 
-Status: **decisions recorded — awaiting edge-case sign-off**. Depends on: `api-foundation`.
+Status: **approved 2026-10-08**
 
 ## Objective
 HR manages employee records: create, list (paginated, searchable, filterable), view, update, soft-delete, restore, and upload a profile image. Employee data feeds payroll later. (Auth/roles arrive in the auth slice; a separate `User` table is planned there.)
@@ -49,16 +49,64 @@ Employee responses embed `department: { id, name }`.
 ## Shared contract (`types/src/employees/`)
 `employeeSchema`, `createEmployeeSchema`, `updateEmployeeSchema`, `employeeListQuerySchema`, `departmentSchema`, enums `EmployeeStatus`, `EmployeeType`, inferred types. Same schemas power the web form.
 
-## Architecture
+## Architecture (flat Nest module + dependency inversion, per CLAUDE.md)
 ```
 apps/api/src/employees/
-  domain/          employee.ts, employee.repository.ts (interface + token), employee-errors.ts, last-hr.policy.ts
-  application/     employees.service.ts, profile-image.service.ts, file-storage.port.ts
-  infrastructure/  prisma-employee.repository.ts, local-file-storage.ts
-  presentation/    employees.controller.ts
+  employees.module.ts
+  employees.controller.ts            thin: parse, call one service method, map
+  employees.service.ts               use cases incl. last-HR guard, restore; depends on tokens only
+  employees.repository.ts            EmployeeRepository interface + token
+  prisma-employees.repository.ts     Prisma impl; translates unique violations → ConflictError
+  employees.errors.ts                domain errors
+  profile-image/                     file-storage port + local-disk impl, signature sniffing
+apps/api/src/departments/
+  departments.module.ts · departments.controller.ts · departments.repository.ts · prisma-departments.repository.ts
+apps/api/src/prisma/                 PrismaService + schema, migrations, seed
 ```
-apps/api/src/departments/   domain/ (repository interface), infrastructure/ (prisma repo), presentation/ (controller)
-Prisma is introduced in this slice (schema: `Department`, `Employee` + migration + idempotent seed: 6 departments, ~15 employees incl. 2 HR).
+No `domain/` folder here: employees has no pure business-rule engine (the last-HR guard is a service rule).
+
+## Implementation contract (tests and code both follow these names)
+
+**`types/src/employees/employee.schema.ts`** (re-exported from `types/src/index.ts`; also `todayInTimeZone` from `types/src/common/dates.ts`)
+- `employeeStatusSchema` = `z.enum(['ACTIVE','INACTIVE'])`, `employeeTypeSchema` = `z.enum(['HR','EMPLOYEE'])`; types `EmployeeStatus`, `EmployeeType`.
+- `departmentSchema` `{ id, name }` → `Department`.
+- `employeeSchema` (response shape) → `Employee`: `id, fullName, email, phone: string|null, jobTitle, department: Department, hireDate: 'YYYY-MM-DD', baseSalary: string ('5000.00'), status, type, profileImageUrl: string|null, deletedAt: string|null (ISO), createdAt, updatedAt (ISO)`.
+- `buildCreateEmployeeSchema({ today }: { today: string })` → strict object; `CreateEmployeeInput = z.output<…>`. `today` is `YYYY-MM-DD`; hire date must be ≤ it. The schema takes `today` instead of reading a clock, so it stays pure and the web form and API share one rule.
+- `buildUpdateEmployeeSchema({ today })` → strict, every field optional, `phone` may be `null` (clears it); `{}` → issue at `_root` "Nothing to update". `UpdateEmployeeInput`.
+- `employeeListQuerySchema` = `paginationQuerySchema` + `search?` (trimmed, max 100, empty → undefined), `departmentId?` uuid, `status?`, `type?`, `deleted` (`'true'|'false'` → boolean, default false). Query objects **strip** unknown params (bodies are strict). `EmployeeListQuery`.
+- `idParamSchema` = `{ id: z.uuid() }` (in `types/src/common/`).
+- `todayInTimeZone(timeZone: string, now?: Date): string` → `YYYY-MM-DD` via `Intl.DateTimeFormat`.
+
+**API common additions**
+- `ZodValidationPipe` constructor also accepts a **factory** `() => ZodType` (evaluated per `transform` call).
+- `common/clock.ts`: `interface Clock { now(): Date; today(): string }`, token `CLOCK`, `SystemClock` (uses `APP_TIMEZONE`).
+- `common/config.ts`: `appConfig` = Zod-validated env (`APP_TIMEZONE` default `Africa/Cairo`, `UPLOADS_DIR` default `uploads`); invalid env fails fast at startup.
+- `domain-errors.ts` gains `UnsupportedMediaTypeError` → 415 (`ProblemType.unsupportedMediaType`).
+
+**`apps/api/src/departments/`**
+- `departments.repository.ts`: `interface DepartmentRepository { findAll(): Promise<Department[]>; exists(id: string): Promise<boolean> }`, token `DEPARTMENT_REPOSITORY`.
+- `departments.service.ts` `DepartmentsService.findAll()`; `departments.controller.ts` `GET /departments`; `prisma-departments.repository.ts`; `departments.module.ts` (exports the token).
+
+**`apps/api/src/employees/`**
+- `employees.repository.ts`: token `EMPLOYEE_REPOSITORY` and
+  ```ts
+  interface EmployeeRepository {
+    findById(id: string, options?: { includeDeleted?: boolean }): Promise<Employee | null>;
+    findByEmail(email: string): Promise<Employee | null>;        // includes deleted
+    list(query: EmployeeListQuery): Promise<{ items: Employee[]; totalItems: number }>;
+    create(input: CreateEmployeeInput): Promise<Employee>;
+    update(id: string, changes: EmployeeChanges): Promise<Employee>; // UpdateEmployeeInput & { deletedAt?: Date|null; profileImageUrl?: string|null }
+    countActiveHr(): Promise<number>;                              // ACTIVE, type HR, not deleted
+  }
+  ```
+- `employees.errors.ts`: `EmployeeNotFoundError` (NotFound), `EmailAlreadyUsedError` (Conflict; message says when the owner is deleted and can be restored), `EmployeeNotDeletedError` (Conflict), `LastHrError` (BusinessRule), `DepartmentNotFoundError` → `ValidationError({ departmentId: ['Department does not exist'] })`.
+- `employees.service.ts` `EmployeesService` (injects `EMPLOYEE_REPOSITORY`, `DEPARTMENT_REPOSITORY`, `CLOCK`, `FILE_STORAGE`): `create`, `list` (→ `PaginatedResult<Employee>`), `getById`, `update`, `remove`, `restore`, `setProfileImage(id, file: UploadedImage)` where `UploadedImage = { buffer: Buffer; size: number }`.
+  - Order rules: the employee must exist **before** a file is saved; when replacing, save new → update record → remove old file.
+- `employee-input.pipes.ts`: `CreateEmployeePipe` / `UpdateEmployeePipe` — injectable subclasses of `ZodValidationPipe` that build the schema per request from the injected `Clock`.
+- `profile-image/`: `file-storage.ts` (`interface FileStorage { save(buffer: Buffer, extension: string): Promise<string /* public URL path */>; remove(url: string): Promise<void> }`, token `FILE_STORAGE`), `local-file-storage.ts`, `image-type.ts` → `detectImageType(buffer): 'jpeg' | 'png' | 'webp' | null` (magic bytes only).
+- Upload limits: Nest `FileInterceptor('file', { limits: { fileSize: 2 * 1024 * 1024 } })` → multer's 413 is mapped by the filter. Missing file → `ValidationError({ file: ['File is required'] })`. Unknown signature → `UnsupportedMediaTypeError`. Files served via `app.useStaticAssets(UPLOADS_DIR, { prefix: '/uploads' })`.
+- `prisma-employees.repository.ts`: maps Prisma rows ↔ `Employee` (Decimal → `toFixed(2)` string, `@db.Date` → `YYYY-MM-DD`); unique violation `P2002` → `EmailAlreadyUsedError`.
+- Test fakes (written by the testing agent, used by unit and e2e tests): `apps/api/test/fakes/` → `InMemoryEmployeeRepository`, `InMemoryDepartmentRepository`, `InMemoryFileStorage`, `FixedClock`.
 
 ## Testing strategy
 - Schema tests (types): every rule above, each boundary on both sides.
