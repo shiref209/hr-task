@@ -1,42 +1,18 @@
+import type { PayItem, Payslip } from '@hr/types';
 import Decimal from 'decimal.js';
-
-type NamedAmount = { name: string; amount: string };
 
 export type PayInput = {
   baseSalary: string;
-  allowances: NamedAmount[];
-  deductions: NamedAmount[];
+  allowances: PayItem[];
+  deductions: PayItem[];
   brackets: { upTo: string | null; rate: string }[];
   socialInsurance: { rate: string; cap: string | null };
 };
 
-export type PayBreakdown = {
-  baseSalary: string;
-  allowances: NamedAmount[];
-  allowancesTotal: string;
-  gross: string;
-  tax: {
-    total: string;
-    effectiveRate: string;
-    brackets: {
-      from: string;
-      upTo: string | null;
-      rate: string;
-      taxable: string;
-      tax: string;
-    }[];
-  };
-  socialInsurance: {
-    rate: string;
-    cap: string | null;
-    amount: string;
-    capped: boolean;
-  };
-  deductions: { name: string; requested: string; applied: string }[];
-  deductionsApplied: string;
-  deductionsUnapplied: string;
-  net: string;
-};
+export type PayBreakdown = Omit<
+  Payslip,
+  'employee' | 'month' | 'taxTable' | 'warnings'
+>;
 
 const ZERO = new Decimal(0);
 const round = (value: Decimal) =>
@@ -66,7 +42,7 @@ function socialInsurance(
   return { amount: round(capped ? limit : raw), capped, limit };
 }
 
-function applyDeductions(deductions: NamedAmount[], available: Decimal) {
+function applyDeductions(deductions: PayItem[], available: Decimal) {
   let left = available;
   return deductions.map(({ name, amount }) => {
     const requested = new Decimal(amount);
