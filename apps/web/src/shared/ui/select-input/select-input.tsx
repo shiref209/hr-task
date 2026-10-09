@@ -19,7 +19,7 @@ export function SelectInput({
   return (
     <Field label={label} hint={hint} error={error} required={required}>
       {(control) => (
-        <select className="field__control" {...select} {...control}>
+        <select className="field__control field__control--select" {...select} {...control}>
           {placeholder ? <option value="">{placeholder}</option> : null}
           {options.map((option) => (
             <option key={option.value} value={option.value}>

@@ -10,3 +10,5 @@ export { Skeleton } from './skeleton/skeleton';
 export { TextInput } from './text-input/text-input';
 export { ToastProvider } from './toast/toast';
 export { useToast } from './toast/toast-context';
+export { Menu } from './menu/menu';
+export { ErrorView } from './error-view/error-view';

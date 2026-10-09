@@ -19,6 +19,21 @@
     background: var(--color-surface);
     color: var(--color-text);
     font: inherit;
+    line-height: var(--line-height-normal); // inputs and selects otherwise differ in intrinsic height
+
+    // Chrome ignores line-height on native selects, so drop the native look and draw the chevron from two token-coloured triangles.
+    &--select {
+      appearance: none;
+      padding-inline-end: calc(var(--space-4) + var(--space-3));
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+        linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+      background-position:
+        calc(100% - var(--space-4) - var(--space-1)) 50%,
+        calc(100% - var(--space-4)) 50%;
+      background-size: var(--space-1) var(--space-1);
+      background-repeat: no-repeat;
+    }
 
     &[aria-invalid='true'] {
       border-color: var(--color-danger);

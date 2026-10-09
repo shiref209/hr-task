@@ -1,0 +1,199 @@
+@use '../../shared/theme/breakpoints' as *;
+
+.employees-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: var(--space-4);
+
+  &__title {
+    font-size: var(--font-size-2xl);
+  }
+
+  &__count {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  &__skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+}
+
+.employee-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+
+  > * {
+    flex: 1 1 10rem;
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: calc(var(--space-2) + var(--border-width)); // match the controls' padding plus border
+    line-height: var(--line-height-normal);
+  }
+}
+
+// Base styles: every row is a stacked card. Table layout returns at md.
+.employee-list {
+  display: block;
+
+  tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  // Headers stay in the accessibility tree on mobile but are not painted.
+  &__head {
+    position: absolute;
+    width: var(--border-width);
+    height: var(--border-width);
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &[aria-busy='true'] {
+    opacity: 0.6;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'name name actions'
+      'job department department'
+      'amount amount status';
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  &__cell {
+    &--name {
+      grid-area: name;
+    }
+
+    &--job,
+    &--department {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+    }
+
+    &--job {
+      grid-area: job;
+    }
+
+    &--department {
+      grid-area: department;
+
+      &::before {
+        content: '\00b7';
+        padding-inline-end: var(--space-2);
+      }
+    }
+
+    &--amount {
+      grid-area: amount;
+    }
+
+    &--status {
+      grid-area: status;
+    }
+
+    &--actions {
+      grid-area: actions;
+      align-self: start;
+    }
+  }
+
+  &__person {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  &__identity {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__email,
+  &__deleted {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  @include up(md) {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+
+    &__head {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+      display: table-header-group;
+    }
+
+    th {
+      padding: var(--space-3);
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+      text-align: start;
+    }
+
+    tbody {
+      display: table-row-group;
+    }
+
+    &__row {
+      display: table-row;
+      border: 0;
+      border-block-start: var(--border-width) solid var(--color-border);
+      border-radius: 0;
+    }
+
+    &__cell {
+      display: table-cell;
+      padding: var(--space-3);
+      vertical-align: middle;
+
+      &--job,
+      &--department {
+        color: inherit;
+        font-size: inherit;
+      }
+
+      &--department::before {
+        content: none;
+      }
+
+      &--amount {
+        text-align: end;
+      }
+    }
+  }
+}
