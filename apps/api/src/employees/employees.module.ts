@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CLOCK, SystemClock } from '../common/clock';
 import { appConfig } from '../common/config';
 import { DepartmentsModule } from '../departments/departments.module';
+import { PayrollRepositoriesModule } from '../payroll/payroll-repositories.module';
 import { EmployeesController } from './employees.controller';
 import { EMPLOYEE_REPOSITORY } from './employees.repository';
 import { EmployeesService } from './employees.service';
@@ -10,7 +11,7 @@ import { FILE_STORAGE } from './profile-image/file-storage';
 import { LocalFileStorage } from './profile-image/local-file-storage';
 
 @Module({
-  imports: [DepartmentsModule],
+  imports: [DepartmentsModule, PayrollRepositoriesModule],
   controllers: [EmployeesController],
   providers: [
     EmployeesService,
@@ -21,5 +22,6 @@ import { LocalFileStorage } from './profile-image/local-file-storage';
       useFactory: () => new LocalFileStorage(appConfig.UPLOADS_DIR),
     },
   ],
+  exports: [EMPLOYEE_REPOSITORY],
 })
 export class EmployeesModule {}

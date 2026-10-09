@@ -7,6 +7,10 @@ import { DEPARTMENT_REPOSITORY } from '../departments/departments.repository';
 import { EmployeesModule } from '../employees/employees.module';
 import { EMPLOYEE_REPOSITORY } from '../employees/employees.repository';
 import { FILE_STORAGE } from '../employees/profile-image/file-storage';
+import { PAY_ITEM_REPOSITORY } from '../payroll/pay-items/pay-items.repository';
+import { PayrollModule } from '../payroll/payroll.module';
+import { SOCIAL_INSURANCE_REPOSITORY } from '../payroll/social-insurance/social-insurance.repository';
+import { TAX_TABLE_REPOSITORY } from '../payroll/tax-tables/tax-tables.repository';
 import { buildOpenApiDocument } from './openapi';
 
 const OUTPUT = join(__dirname, '../../../../docs/openapi.json');
@@ -26,13 +30,19 @@ function sortKeys(value: unknown): unknown {
 // Routes are only described, never called, so empty stubs keep the export free of a database.
 async function exportDocument(): Promise<void> {
   const moduleRef = await Test.createTestingModule({
-    imports: [EmployeesModule, DepartmentsModule],
+    imports: [EmployeesModule, DepartmentsModule, PayrollModule],
   })
     .overrideProvider(EMPLOYEE_REPOSITORY)
     .useValue({})
     .overrideProvider(DEPARTMENT_REPOSITORY)
     .useValue({})
     .overrideProvider(FILE_STORAGE)
+    .useValue({})
+    .overrideProvider(TAX_TABLE_REPOSITORY)
+    .useValue({})
+    .overrideProvider(SOCIAL_INSURANCE_REPOSITORY)
+    .useValue({})
+    .overrideProvider(PAY_ITEM_REPOSITORY)
     .useValue({})
     .compile();
   const app = moduleRef.createNestApplication();

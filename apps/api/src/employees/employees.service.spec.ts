@@ -16,6 +16,8 @@ import { FixedClock } from '../../test/fakes/fixed-clock';
 import { InMemoryDepartmentRepository } from '../../test/fakes/in-memory-department-repository';
 import { InMemoryEmployeeRepository } from '../../test/fakes/in-memory-employee-repository';
 import { InMemoryFileStorage } from '../../test/fakes/in-memory-file-storage';
+import { InMemoryTaxTableRepository } from '../../test/fakes/in-memory-tax-table-repository';
+import { aTaxTable } from '../../test/fakes/payroll.builder';
 import {
   EmailAlreadyUsedError,
   EmployeeNotDeletedError,
@@ -38,16 +40,21 @@ const aTextFile = (): { buffer: Buffer; size: number } => {
   return { buffer, size: buffer.length };
 };
 
-function setup(seed: Employee[] = []) {
-  const employees = new InMemoryEmployeeRepository(seed);
+function setup(seed: Employee[] = [], taxTables = [aTaxTable()]) {
+  const employees = new InMemoryEmployeeRepository(
+    seed,
+    undefined,
+    taxTables.map((t) => ({ id: t.id, name: t.name })),
+  );
   const storage = new InMemoryFileStorage();
   const service = new EmployeesService(
     employees,
     new InMemoryDepartmentRepository(),
     new FixedClock(NOW),
     storage,
+    new InMemoryTaxTableRepository(taxTables),
   );
-  return { service, employees, storage };
+  return { service, employees, storage, taxTables };
 }
 
 function aQuery(overrides: Partial<EmployeeListQuery> = {}): EmployeeListQuery {
@@ -278,6 +285,33 @@ describe('EmployeesService', () => {
       const { service } = setup([employee]);
 
       expect(await service.getById(employee.id)).toEqual(employee);
+    });
+
+    it('rejects an unknown taxTableId with a validation error on taxTableId', async () => {
+      const employee = anEmployee();
+      const { service } = setup([employee]);
+
+      const error = await validationErrorOf(
+        service.update(employee.id, { taxTableId: UNKNOWN_ID }),
+      );
+
+      expect(error.errors).toEqual({ taxTableId: ['Select a tax table'] });
+    });
+
+    it('assigns an existing tax table and clears it with null', async () => {
+      const employee = anEmployee();
+      const { service, taxTables } = setup([employee]);
+
+      const assigned = await service.update(employee.id, {
+        taxTableId: taxTables[0].id,
+      });
+      const cleared = await service.update(employee.id, { taxTableId: null });
+
+      expect(assigned.taxTable).toEqual({
+        id: taxTables[0].id,
+        name: taxTables[0].name,
+      });
+      expect(cleared.taxTable).toBeNull();
     });
 
     it('throws not found for an unknown id', async () => {

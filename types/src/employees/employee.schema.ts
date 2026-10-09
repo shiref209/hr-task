@@ -28,6 +28,8 @@ export const employeeSchema = z.object({
   status: employeeStatusSchema,
   type: employeeTypeSchema,
   profileImageUrl: z.string().nullable(),
+  // null = uses the default tax table
+  taxTable: z.object({ id: z.uuid(), name: z.string() }).nullable(),
   deletedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -98,7 +100,10 @@ export const createEmployeeSchema = z.strictObject({
 export type CreateEmployeeInput = z.output<typeof createEmployeeSchema>;
 
 export const updateEmployeeSchema = z
-  .strictObject(fields)
+  .strictObject({
+    ...fields,
+    taxTableId: z.uuid({ error: 'Select a tax table' }).nullable(),
+  })
   .partial()
   .refine((changes) => Object.keys(changes).length > 0, {
     message: 'Nothing to update',

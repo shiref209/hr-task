@@ -13,7 +13,10 @@ import type {
 } from './employees.repository';
 
 const withDepartment = {
-  include: { department: { select: { id: true, name: true } } },
+  include: {
+    department: { select: { id: true, name: true } },
+    taxTable: { select: { id: true, name: true } },
+  },
 } satisfies Prisma.EmployeeDefaultArgs;
 
 type EmployeeRow = Prisma.EmployeeGetPayload<typeof withDepartment>;
@@ -30,6 +33,7 @@ const toEmployee = (row: EmployeeRow): Employee => ({
   status: row.status,
   type: row.type,
   profileImageUrl: row.profileImageUrl,
+  taxTable: row.taxTable,
   deletedAt: row.deletedAt?.toISOString() ?? null,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),

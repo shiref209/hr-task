@@ -1,0 +1,158 @@
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import type { TaxTable, TaxTableInput } from '@hr/types';
+import { PrismaService } from '../../prisma/prisma.service';
+import {
+  TaxTableInUseError,
+  TaxTableNameTakenError,
+} from './tax-tables.errors';
+import type { TaxTableRepository } from './tax-tables.repository';
+
+const withBrackets = {
+  include: {
+    brackets: { orderBy: { position: 'asc' } },
+    _count: { select: { employees: { where: { deletedAt: null } } } },
+  },
+} satisfies Prisma.TaxTableDefaultArgs;
+
+type TaxTableRow = Prisma.TaxTableGetPayload<typeof withBrackets>;
+
+const toTaxTable = (row: TaxTableRow): TaxTable => ({
+  id: row.id,
+  name: row.name,
+  isDefault: row.isDefault,
+  brackets: row.brackets.map((bracket) => ({
+    upTo: bracket.upTo?.toFixed(2) ?? null,
+    rate: bracket.rate.toFixed(2),
+  })),
+  employeeCount: row._count.employees,
+});
+
+const toBracketRows = (brackets: TaxTableInput['brackets']) =>
+  brackets.map(({ upTo, rate }, position) => ({ position, upTo, rate }));
+
+@Injectable()
+export class PrismaTaxTablesRepository implements TaxTableRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findAll(): Promise<TaxTable[]> {
+    const rows = await this.prisma.taxTable.findMany({
+      orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+      ...withBrackets,
+    });
+    return rows.map(toTaxTable);
+  }
+
+  async findById(id: string): Promise<TaxTable | null> {
+    const row = await this.prisma.taxTable.findUnique({
+      where: { id },
+      ...withBrackets,
+    });
+    return row && toTaxTable(row);
+  }
+
+  async findDefault(): Promise<TaxTable | null> {
+    const row = await this.prisma.taxTable.findFirst({
+      where: { isDefault: true },
+      ...withBrackets,
+    });
+    return row && toTaxTable(row);
+  }
+
+  async findByName(name: string): Promise<TaxTable | null> {
+    const row = await this.prisma.taxTable.findFirst({
+      where: { name: { equals: name, mode: 'insensitive' } },
+      ...withBrackets,
+    });
+    return row && toTaxTable(row);
+  }
+
+  create({ name, brackets }: TaxTableInput): Promise<TaxTable> {
+    return this.translateUniqueViolation(async () =>
+      toTaxTable(
+        await this.prisma.taxTable.create({
+          data: { name, brackets: { create: toBracketRows(brackets) } },
+          ...withBrackets,
+        }),
+      ),
+    );
+  }
+
+  update(id: string, { name, brackets }: TaxTableInput): Promise<TaxTable> {
+    return this.translateUniqueViolation(async () => {
+      const [, row] = await this.prisma.$transaction([
+        this.prisma.taxBracket.deleteMany({ where: { taxTableId: id } }),
+        this.prisma.taxTable.update({
+          where: { id },
+          data: { name, brackets: { create: toBracketRows(brackets) } },
+          ...withBrackets,
+        }),
+      ]);
+      return toTaxTable(row);
+    });
+  }
+
+  async setDefault(id: string): Promise<void> {
+    // Old default first: the partial unique index allows only one default at any moment.
+    await this.prisma.$transaction([
+      this.prisma.taxTable.updateMany({
+        where: { isDefault: true },
+        data: { isDefault: false },
+      }),
+      this.prisma.taxTable.update({
+        where: { id },
+        data: { isDefault: true },
+      }),
+    ]);
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      // Soft-deleted employees don't block deletion; release them so the foreign key allows it.
+      await this.prisma.$transaction([
+        this.prisma.employee.updateMany({
+          where: { taxTableId: id, deletedAt: { not: null } },
+          data: { taxTableId: null },
+        }),
+        this.prisma.taxTable.delete({ where: { id } }),
+      ]);
+    } catch (error) {
+      // An employee was assigned the table after the service's check.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      )
+        throw new TaxTableInUseError();
+      throw error;
+    }
+  }
+
+  countAssignedEmployees(id: string): Promise<number> {
+    return this.prisma.employee.count({
+      where: { taxTableId: id, deletedAt: null },
+    });
+  }
+
+  async highestRate(): Promise<string | null> {
+    const { _max } = await this.prisma.taxBracket.aggregate({
+      _max: { rate: true },
+    });
+    return _max.rate?.toFixed(2) ?? null;
+  }
+
+  // Backstop for the race between the service's name check and the write.
+  private async translateUniqueViolation<T>(
+    write: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await write();
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      )
+        throw new TaxTableNameTakenError();
+      throw error;
+    }
+  }
+}

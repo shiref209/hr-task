@@ -30,6 +30,7 @@ export function anEmployee(overrides: Partial<Employee> = {}): Employee {
     status: 'ACTIVE',
     type: 'EMPLOYEE',
     profileImageUrl: null,
+    taxTable: null,
     deletedAt: null,
     createdAt: '2024-01-15T09:00:00.000Z',
     updatedAt: '2024-01-15T09:00:00.000Z',

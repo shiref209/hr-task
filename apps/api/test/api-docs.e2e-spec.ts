@@ -18,6 +18,10 @@ import { FixedClock } from './fakes/fixed-clock';
 import { InMemoryDepartmentRepository } from './fakes/in-memory-department-repository';
 import { InMemoryEmployeeRepository } from './fakes/in-memory-employee-repository';
 import { InMemoryFileStorage } from './fakes/in-memory-file-storage';
+import { TAX_TABLE_REPOSITORY } from '../src/payroll/tax-tables/tax-tables.repository';
+import { SOCIAL_INSURANCE_REPOSITORY } from '../src/payroll/social-insurance/social-insurance.repository';
+import { InMemoryTaxTableRepository } from './fakes/in-memory-tax-table-repository';
+import { InMemorySocialInsuranceRepository } from './fakes/in-memory-social-insurance-repository';
 
 type Obj = Record<string, unknown>;
 
@@ -35,6 +39,10 @@ async function boot(swaggerEnabled: boolean): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({
     imports: [EmployeesModule, DepartmentsModule],
   })
+    .overrideProvider(TAX_TABLE_REPOSITORY)
+    .useValue(new InMemoryTaxTableRepository())
+    .overrideProvider(SOCIAL_INSURANCE_REPOSITORY)
+    .useValue(new InMemorySocialInsuranceRepository())
     .overrideProvider(EMPLOYEE_REPOSITORY)
     .useValue(new InMemoryEmployeeRepository([]))
     .overrideProvider(DEPARTMENT_REPOSITORY)

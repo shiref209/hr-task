@@ -3,3 +3,8 @@ export * from './common/pagination';
 export * from './common/problem-details';
 export * from './common/id-param';
 export * from './employees/employee.schema';
+export * from './payroll/money.schema';
+export * from './payroll/tax-table.schema';
+export * from './payroll/social-insurance.schema';
+export * from './payroll/pay-items.schema';
+export * from './payroll/payslip.schema';

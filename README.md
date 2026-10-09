@@ -92,7 +92,7 @@ Every feature follows the same gate (written in [`CLAUDE.md`](CLAUDE.md)): **spe
 - Departments are a seeded, read-only list.
 - Profile images: JPEG/PNG/WebP detected from the file's bytes (not its name), max 2 MB, stored on local disk.
 
-**Payroll** (planned — see [`PLAN.md`](PLAN.md)): monthly tax brackets; taxable income = gross − social insurance; no proration for partial months; each payslip line rounded half-up to 2 decimals and net = sum of the rounded lines.
+**Payroll** (see [`specs/payroll/spec.md`](specs/payroll/spec.md)): marginal (progressive) tax brackets applied to the **base salary only** (allowances are not taxed); several tax tables, one default, per-employee override; social insurance = min(base × rate, cap); other deductions apply in order and never push net below 0 (the rest is reported as unapplied); each payslip line rounded half-up to 2 decimals and totals are sums of rounded lines; payslips from the hire month onward (no proration), active employees only, using current settings (no history).
 
 ## Tech choices and dependencies
 
@@ -100,6 +100,7 @@ Every feature follows the same gate (written in [`CLAUDE.md`](CLAUDE.md)): **spe
 |---|---|
 | NestJS 11 | Preferred backend in the brief; modules + DI give the layering for free |
 | Prisma 6.19 + PostgreSQL 17 | Typed queries and migrations. Pinned to 6.x: Prisma 7 needs a driver adapter and config file for no benefit here |
+| decimal.js | Exact decimal arithmetic for money in the pure payroll calculator (already Prisma's Decimal; imported directly so the domain has no Prisma dependency) |
 | zod 4 | One schema = runtime validation + TS types + JSON Schema for the docs, shared by API and web |
 | @nestjs/swagger | Serves OpenAPI/Swagger UI; schemas come from Zod via `z.toJSONSchema` |
 | React 19 + Vite 8 | Brief allows React; Vite gives fast dev and simple config |

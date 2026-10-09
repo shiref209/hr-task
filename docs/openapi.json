@@ -251,6 +251,25 @@
                             ],
                             "type": "string"
                           },
+                          "taxTable": {
+                            "additionalProperties": false,
+                            "nullable": true,
+                            "properties": {
+                              "id": {
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ],
+                            "type": "object"
+                          },
                           "type": {
                             "enum": [
                               "HR",
@@ -274,6 +293,7 @@
                           "status",
                           "type",
                           "profileImageUrl",
+                          "taxTable",
                           "deletedAt",
                           "createdAt",
                           "updatedAt"
@@ -482,6 +502,25 @@
                           ],
                           "type": "string"
                         },
+                        "taxTable": {
+                          "additionalProperties": false,
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "type": "object"
+                        },
                         "type": {
                           "enum": [
                             "HR",
@@ -505,6 +544,7 @@
                         "status",
                         "type",
                         "profileImageUrl",
+                        "taxTable",
                         "deletedAt",
                         "createdAt",
                         "updatedAt"
@@ -687,6 +727,25 @@
                           ],
                           "type": "string"
                         },
+                        "taxTable": {
+                          "additionalProperties": false,
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "type": "object"
+                        },
                         "type": {
                           "enum": [
                             "HR",
@@ -710,6 +769,7 @@
                         "status",
                         "type",
                         "profileImageUrl",
+                        "taxTable",
                         "deletedAt",
                         "createdAt",
                         "updatedAt"
@@ -810,6 +870,12 @@
                     ],
                     "type": "string"
                   },
+                  "taxTableId": {
+                    "format": "uuid",
+                    "nullable": true,
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
                   "type": {
                     "enum": [
                       "HR",
@@ -894,6 +960,25 @@
                           ],
                           "type": "string"
                         },
+                        "taxTable": {
+                          "additionalProperties": false,
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "type": "object"
+                        },
                         "type": {
                           "enum": [
                             "HR",
@@ -917,6 +1002,7 @@
                         "status",
                         "type",
                         "profileImageUrl",
+                        "taxTable",
                         "deletedAt",
                         "createdAt",
                         "updatedAt"
@@ -977,6 +1063,572 @@
         "summary": "Update an employee (partial)",
         "tags": [
           "Employees"
+        ]
+      }
+    },
+    "/employees/{id}/pay-items": {
+      "get": {
+        "operationId": "PayItemsController_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allowances": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "amount": {
+                                "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                                "type": "string"
+                              },
+                              "name": {
+                                "maxLength": 60,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "amount"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "deductions": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "amount": {
+                                "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                                "type": "string"
+                              },
+                              "name": {
+                                "maxLength": 60,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "amount"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "allowances",
+                        "deductions"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get an employee's allowances and deductions",
+        "tags": [
+          "Pay items"
+        ]
+      },
+      "put": {
+        "description": "Both lists are replaced; the order is kept.",
+        "operationId": "PayItemsController_replace",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "allowances": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "amount": {
+                          "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                          "type": "string"
+                        },
+                        "name": {
+                          "maxLength": 60,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "amount"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "deductions": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "amount": {
+                          "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                          "type": "string"
+                        },
+                        "name": {
+                          "maxLength": 60,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "amount"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "allowances",
+                  "deductions"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allowances": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "amount": {
+                                "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                                "type": "string"
+                              },
+                              "name": {
+                                "maxLength": 60,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "amount"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "deductions": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "amount": {
+                                "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                                "type": "string"
+                              },
+                              "name": {
+                                "maxLength": 60,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "amount"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "allowances",
+                        "deductions"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Replace an employee's allowances and deductions",
+        "tags": [
+          "Pay items"
+        ]
+      }
+    },
+    "/employees/{id}/payslip": {
+      "get": {
+        "description": "Uses current settings. Months before the hire month are rejected; future months are a preview.",
+        "operationId": "PayslipController_generate",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allowances": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "amount": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "amount"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "allowancesTotal": {
+                          "type": "string"
+                        },
+                        "baseSalary": {
+                          "type": "string"
+                        },
+                        "deductions": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "applied": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "requested": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "requested",
+                              "applied"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "deductionsApplied": {
+                          "type": "string"
+                        },
+                        "deductionsUnapplied": {
+                          "type": "string"
+                        },
+                        "employee": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "fullName": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "fullName"
+                          ],
+                          "type": "object"
+                        },
+                        "gross": {
+                          "type": "string"
+                        },
+                        "month": {
+                          "type": "string"
+                        },
+                        "net": {
+                          "type": "string"
+                        },
+                        "socialInsurance": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "amount": {
+                              "type": "string"
+                            },
+                            "cap": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "capped": {
+                              "type": "boolean"
+                            },
+                            "rate": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "rate",
+                            "cap",
+                            "amount",
+                            "capped"
+                          ],
+                          "type": "object"
+                        },
+                        "tax": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "brackets": {
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "from": {
+                                    "type": "string"
+                                  },
+                                  "rate": {
+                                    "type": "string"
+                                  },
+                                  "tax": {
+                                    "type": "string"
+                                  },
+                                  "taxable": {
+                                    "type": "string"
+                                  },
+                                  "upTo": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "from",
+                                  "upTo",
+                                  "rate",
+                                  "taxable",
+                                  "tax"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "effectiveRate": {
+                              "type": "string"
+                            },
+                            "total": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "effectiveRate",
+                            "brackets"
+                          ],
+                          "type": "object"
+                        },
+                        "taxTable": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "id": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "type": "object"
+                        },
+                        "warnings": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "employee",
+                        "month",
+                        "taxTable",
+                        "baseSalary",
+                        "allowances",
+                        "allowancesTotal",
+                        "gross",
+                        "tax",
+                        "socialInsurance",
+                        "deductions",
+                        "deductionsApplied",
+                        "deductionsUnapplied",
+                        "net",
+                        "warnings"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get an employee's payslip for a month",
+        "tags": [
+          "Payslips"
         ]
       }
     },
@@ -1086,6 +1738,25 @@
                           ],
                           "type": "string"
                         },
+                        "taxTable": {
+                          "additionalProperties": false,
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "type": "object"
+                        },
                         "type": {
                           "enum": [
                             "HR",
@@ -1109,6 +1780,7 @@
                         "status",
                         "type",
                         "profileImageUrl",
+                        "taxTable",
                         "deletedAt",
                         "createdAt",
                         "updatedAt"
@@ -1257,6 +1929,25 @@
                           ],
                           "type": "string"
                         },
+                        "taxTable": {
+                          "additionalProperties": false,
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "type": "object"
+                        },
                         "type": {
                           "enum": [
                             "HR",
@@ -1280,6 +1971,7 @@
                         "status",
                         "type",
                         "profileImageUrl",
+                        "taxTable",
                         "deletedAt",
                         "createdAt",
                         "updatedAt"
@@ -1330,6 +2022,709 @@
         "summary": "Restore a soft-deleted employee",
         "tags": [
           "Employees"
+        ]
+      }
+    },
+    "/payroll-settings/social-insurance": {
+      "get": {
+        "operationId": "SocialInsuranceController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "cap": {
+                          "nullable": true,
+                          "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                          "type": "string"
+                        },
+                        "rate": {
+                          "pattern": "^(100(\\.0{1,2})?|\\d{1,2}(\\.\\d{1,2})?)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "rate",
+                        "cap"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get the social insurance rate and cap",
+        "tags": [
+          "Payroll settings"
+        ]
+      },
+      "put": {
+        "operationId": "SocialInsuranceController_update",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "cap": {
+                    "nullable": true,
+                    "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                    "type": "string"
+                  },
+                  "rate": {
+                    "pattern": "^(100(\\.0{1,2})?|\\d{1,2}(\\.\\d{1,2})?)$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "rate",
+                  "cap"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "cap": {
+                          "nullable": true,
+                          "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                          "type": "string"
+                        },
+                        "rate": {
+                          "pattern": "^(100(\\.0{1,2})?|\\d{1,2}(\\.\\d{1,2})?)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "rate",
+                        "cap"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Replace the social insurance rate and cap",
+        "tags": [
+          "Payroll settings"
+        ]
+      }
+    },
+    "/tax-tables": {
+      "get": {
+        "operationId": "TaxTablesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "brackets": {
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "rate": {
+                                  "type": "string"
+                                },
+                                "upTo": {
+                                  "nullable": true,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "upTo",
+                                "rate"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "employeeCount": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "type": "string"
+                          },
+                          "isDefault": {
+                            "type": "boolean"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "isDefault",
+                          "brackets",
+                          "employeeCount"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List tax tables with their brackets, default first",
+        "tags": [
+          "Tax tables"
+        ]
+      },
+      "post": {
+        "operationId": "TaxTablesController_create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": {},
+                "properties": {
+                  "brackets": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "rate": {
+                          "pattern": "^(100(\\.0{1,2})?|\\d{1,2}(\\.\\d{1,2})?)$",
+                          "type": "string"
+                        },
+                        "upTo": {
+                          "nullable": true,
+                          "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "upTo",
+                        "rate"
+                      ],
+                      "type": "object"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "name": {
+                    "maxLength": 60,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "brackets"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "brackets": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "rate": {
+                                "type": "string"
+                              },
+                              "upTo": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "upTo",
+                              "rate"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "employeeCount": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "isDefault": {
+                          "type": "boolean"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "isDefault",
+                        "brackets",
+                        "employeeCount"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Create a tax table",
+        "tags": [
+          "Tax tables"
+        ]
+      }
+    },
+    "/tax-tables/{id}": {
+      "delete": {
+        "operationId": "TaxTablesController_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Delete an unused, non-default tax table",
+        "tags": [
+          "Tax tables"
+        ]
+      },
+      "put": {
+        "operationId": "TaxTablesController_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": {},
+                "properties": {
+                  "brackets": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "rate": {
+                          "pattern": "^(100(\\.0{1,2})?|\\d{1,2}(\\.\\d{1,2})?)$",
+                          "type": "string"
+                        },
+                        "upTo": {
+                          "nullable": true,
+                          "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "upTo",
+                        "rate"
+                      ],
+                      "type": "object"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "name": {
+                    "maxLength": 60,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "brackets"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "brackets": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "rate": {
+                                "type": "string"
+                              },
+                              "upTo": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "upTo",
+                              "rate"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "employeeCount": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "isDefault": {
+                          "type": "boolean"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "isDefault",
+                        "brackets",
+                        "employeeCount"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Replace a tax table name and brackets",
+        "tags": [
+          "Tax tables"
+        ]
+      }
+    },
+    "/tax-tables/{id}/default": {
+      "post": {
+        "operationId": "TaxTablesController_setDefault",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "brackets": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "rate": {
+                                "type": "string"
+                              },
+                              "upTo": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "upTo",
+                              "rate"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "employeeCount": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "isDefault": {
+                          "type": "boolean"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "isDefault",
+                        "brackets",
+                        "employeeCount"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Make a tax table the default",
+        "tags": [
+          "Tax tables"
         ]
       }
     }

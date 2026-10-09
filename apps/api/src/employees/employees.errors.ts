@@ -40,3 +40,9 @@ export class DepartmentNotFoundError extends ValidationError {
     super({ departmentId: ['Department does not exist'] });
   }
 }
+
+export class UnknownTaxTableError extends ValidationError {
+  constructor() {
+    super({ taxTableId: ['Select a tax table'] });
+  }
+}

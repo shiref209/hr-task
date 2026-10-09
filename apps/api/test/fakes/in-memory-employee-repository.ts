@@ -22,6 +22,7 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
       HUMAN_RESOURCES,
       FINANCE,
     ],
+    private readonly taxTables: { id: string; name: string }[] = [],
   ) {
     this.rows = seed.map((employee) => ({ ...employee }));
   }
@@ -94,6 +95,7 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
       status: input.status,
       type: input.type,
       profileImageUrl: null,
+      taxTable: null,
       deletedAt: null,
       createdAt: now,
       updatedAt: now,
@@ -107,7 +109,15 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     if (!row) throw new Error(`InMemoryEmployeeRepository: no row ${id}`);
     const { departmentId, deletedAt, baseSalary, ...rest } = changes;
     for (const [key, value] of Object.entries(rest)) {
-      if (value !== undefined) Object.assign(row, { [key]: value });
+      if (key !== 'taxTableId' && value !== undefined)
+        Object.assign(row, { [key]: value });
+    }
+    if ('taxTableId' in rest && rest.taxTableId !== undefined) {
+      const id = rest.taxTableId;
+      const taxTable = this.taxTables.find((t) => t.id === id);
+      Object.assign(row, {
+        taxTable: taxTable ? { id: taxTable.id, name: taxTable.name } : null,
+      });
     }
     if (departmentId !== undefined)
       row.department = this.departmentOf(departmentId);
@@ -117,6 +127,12 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     row.updatedAt = new Date().toISOString();
     this.log.push('update');
     return { ...row };
+  }
+
+  /** Mirrors the real delete of a tax table: every holder falls back to the default. */
+  clearTaxTable(taxTableId: string): void {
+    for (const row of this.rows)
+      if (row.taxTable?.id === taxTableId) row.taxTable = null;
   }
 
   async countActiveHr(): Promise<number> {

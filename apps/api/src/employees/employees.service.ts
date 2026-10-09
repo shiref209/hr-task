@@ -13,11 +13,16 @@ import {
   type DepartmentRepository,
 } from '../departments/departments.repository';
 import {
+  TAX_TABLE_REPOSITORY,
+  type TaxTableRepository,
+} from '../payroll/tax-tables/tax-tables.repository';
+import {
   DepartmentNotFoundError,
   EmailAlreadyUsedError,
   EmployeeNotDeletedError,
   EmployeeNotFoundError,
   LastHrError,
+  UnknownTaxTableError,
 } from './employees.errors';
 import {
   EMPLOYEE_REPOSITORY,
@@ -42,6 +47,8 @@ export class EmployeesService {
     private readonly departments: DepartmentRepository,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(FILE_STORAGE) private readonly storage: FileStorage,
+    @Inject(TAX_TABLE_REPOSITORY)
+    private readonly taxTables: TaxTableRepository,
   ) {}
 
   async create(input: CreateEmployeeInput): Promise<Employee> {
@@ -63,6 +70,7 @@ export class EmployeesService {
     const employee = await this.findActiveOrFail(id);
     if (changes.departmentId !== undefined)
       await this.assertDepartmentExists(changes.departmentId);
+    if (changes.taxTableId) await this.assertTaxTableExists(changes.taxTableId);
     if (changes.email !== undefined)
       await this.assertEmailAvailable(changes.email, id);
     if (changes.status === 'INACTIVE' || changes.type === 'EMPLOYEE')
@@ -112,6 +120,10 @@ export class EmployeesService {
   private async assertDepartmentExists(id: string): Promise<void> {
     if (!(await this.departments.exists(id)))
       throw new DepartmentNotFoundError();
+  }
+
+  private async assertTaxTableExists(id: string): Promise<void> {
+    if (!(await this.taxTables.findById(id))) throw new UnknownTaxTableError();
   }
 
   private async assertEmailAvailable(

@@ -10,6 +10,10 @@ import { InMemoryDepartmentRepository } from '../../test/fakes/in-memory-departm
 import { InMemoryEmployeeRepository } from '../../test/fakes/in-memory-employee-repository';
 import { InMemoryFileStorage } from '../../test/fakes/in-memory-file-storage';
 import { buildOpenApiDocument } from './openapi';
+import { TAX_TABLE_REPOSITORY } from '../payroll/tax-tables/tax-tables.repository';
+import { SOCIAL_INSURANCE_REPOSITORY } from '../payroll/social-insurance/social-insurance.repository';
+import { InMemoryTaxTableRepository } from '../../test/fakes/in-memory-tax-table-repository';
+import { InMemorySocialInsuranceRepository } from '../../test/fakes/in-memory-social-insurance-repository';
 
 describe('buildOpenApiDocument', () => {
   let app: INestApplication;
@@ -18,6 +22,10 @@ describe('buildOpenApiDocument', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [EmployeesModule, DepartmentsModule],
     })
+      .overrideProvider(TAX_TABLE_REPOSITORY)
+      .useValue(new InMemoryTaxTableRepository())
+      .overrideProvider(SOCIAL_INSURANCE_REPOSITORY)
+      .useValue(new InMemorySocialInsuranceRepository())
       .overrideProvider(EMPLOYEE_REPOSITORY)
       .useValue(new InMemoryEmployeeRepository([]))
       .overrideProvider(DEPARTMENT_REPOSITORY)

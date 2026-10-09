@@ -488,3 +488,25 @@ describe('employeeListQuerySchema', () => {
     expect(parsed).not.toHaveProperty('foo');
   });
 });
+
+describe('updateEmployeeSchema taxTableId', () => {
+  const TAX_TABLE_ID = '4a1c2d3e-5f60-4a7b-8c9d-0e1f2a3b4c5d';
+
+  it('accepts a uuid', () => {
+    expect(updateSchema.parse({ taxTableId: TAX_TABLE_ID })).toEqual({
+      taxTableId: TAX_TABLE_ID,
+    });
+  });
+
+  it('accepts null to go back to the default table', () => {
+    expect(updateSchema.parse({ taxTableId: null })).toEqual({
+      taxTableId: null,
+    });
+  });
+
+  it('rejects a non-uuid value', () => {
+    expect(updateSchema.safeParse({ taxTableId: 'standard' }).success).toBe(
+      false,
+    );
+  });
+});
