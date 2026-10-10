@@ -15,6 +15,7 @@ Each point below links to one document. Read them in order for a full tour, or j
 10. **[Tech stack & packages](tech-stack.md)** — every package per app with a one-line justification, and what was deliberately left out.
 11. **[Development process](development-process.md)** — spec-driven development with test-driven development, the per-feature gate and the test suites.
 12. **[Continuous integration](ci.md)** — the GitHub Actions workflow: lint, typecheck, unit + e2e tests and build on every push to `main`.
+13. **[Logging & health check](logging-and-health.md)** — what is logged and what never is, auth events, `LOG_LEVEL`, `GET /health`, and how to try it in development. *Added in an extra hour after the 6–8 hour window.*
 
 Other references:
 - [`openapi.json`](openapi.json) — committed OpenAPI spec (live Swagger UI at http://localhost:3000/docs).

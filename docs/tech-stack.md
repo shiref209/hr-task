@@ -30,6 +30,8 @@ Rule followed: no library for something a few lines or the platform can do; ever
 | @nestjs/jwt | Signs and verifies access tokens |
 | cookie-parser | Reads the httpOnly auth cookies |
 | @nestjs/throttler | Login rate limits (per IP + email, per IP, per email), applied only to `POST /auth/login` |
+| nestjs-pino + pino-http | Structured JSON request logs with redaction; Nest's logger routed through pino ([Logging](logging-and-health.md)) |
+| pino-pretty (dev) | Readable logs in development |
 | rxjs, reflect-metadata | NestJS runtime requirements |
 | Jest + ts-jest | Nest's default test runner |
 | Supertest | Drives the real HTTP stack in e2e tests |

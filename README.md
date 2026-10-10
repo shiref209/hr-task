@@ -1,11 +1,15 @@
 # HR Payroll
 
+> [!IMPORTANT]
+> **Time disclosure:** every feature in this repository was built within the assessment's 6–8 hour window, **except structured logging and the `/health` endpoint**, which were added afterwards in **one extra hour**. See [Logging & health check](docs/logging-and-health.md).
+
 Employee management and payroll calculation for an HR team: a NestJS API, a React web client and a shared TypeScript contract, in one pnpm monorepo. Built for the Interface full-stack code assessment (2026).
 
 > **Status**
 >
 > - **Done:** employees (API + web) · payroll: tax tables, social insurance, pay items, payslip (API + web) · authentication and authorization end to end: JWT cookies, refresh rotation, HR / EMPLOYEE roles, login rate limits, CSRF header, login page, role-aware UI and "My pay" · OpenAPI docs · design system · GitHub Actions CI (lint, typecheck, unit + e2e tests, build on every push to `main`).
-> - **Not started:** Docker images for API/web, structured logging and `/health` — see [Roadmap](#roadmap).
+> - **Added after the time window (+1 hour):** structured logging with redaction (pino) and `GET /health`.
+> - **Not started:** Docker images for API/web — see [Roadmap](#roadmap).
 
 ## Documentation
 
@@ -24,6 +28,7 @@ Full docs live in [`docs/`](docs/README.md):
 10. [Tech stack & packages](docs/tech-stack.md)
 11. [Development process](docs/development-process.md) — spec-driven + test-driven
 12. [Continuous integration](docs/ci.md) — GitHub Actions: lint, typecheck, tests, build
+13. [Logging & health check](docs/logging-and-health.md) — pino logs with redaction, auth events, `GET /health` *(added after the time window)*
 
 ## Quick start
 
@@ -155,8 +160,8 @@ Deliberately **not** added: a UI kit (the brief asks for CSS/SCSS), Passport (a 
 | Suite | Count | What |
 |---|---|---|
 | `types` (Vitest) | 210 | every schema rule on both sides of each boundary |
-| API unit (Jest) | 329 | payroll calculator, error filter, pipe, envelope, services with in-memory fakes, auth service, guards, login limits and password hasher, image signature sniffing |
-| API e2e (Supertest) | 235 | every endpoint's status codes and body shapes, the HR / EMPLOYEE permission matrix, login rate limits, uploads up to/over 2 MB, OpenAPI completeness |
+| API unit (Jest) | 376 | payroll calculator, error filter, pipe, envelope, services with in-memory fakes, auth service, guards, login limits and password hasher, image signature sniffing, log redaction and auth events, health check |
+| API e2e (Supertest) | 240 | every endpoint's status codes and body shapes, the HR / EMPLOYEE permission matrix, login rate limits, uploads up to/over 2 MB, OpenAPI completeness, `/health` |
 | web (Vitest) | 420 | design-system components, pages, forms, server-error mapping, login and session refresh, role-based UI, formatting |
 
 No test touches a real database, network or filesystem. [CI](docs/ci.md) runs lint, typecheck, all four suites and the build on every push to `main`.
@@ -174,11 +179,10 @@ No test touches a real database, network or filesystem. [CI](docs/ci.md) runs li
 ## Roadmap
 
 1. Dockerfiles + full `docker compose up` (today Compose runs only PostgreSQL)
-2. Structured logging (pino) and `/health`
 
 ## AI usage
 
-Built with **Claude Code** (Anthropic, Claude Opus 5.5) and a set of specialised sub-agents, directed by the developer as tech lead and product owner. The full session transcripts will be exported to `/ai-usage`.
+Built with **Claude Code** (Anthropic, Claude Opus 5.5) and a set of specialised sub-agents, directed by the developer as tech lead and product owner. The session transcript and tooling notes are in [`ai-usage/`](ai-usage/README.md).
 
 ### Workflow
 
