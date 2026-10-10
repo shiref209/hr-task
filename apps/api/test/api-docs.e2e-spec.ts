@@ -52,6 +52,8 @@ function registeredRoutes(app: INestApplication): string[] {
     if (!layer.route) continue;
     // Swagger mounts its own UI/json routes; they are never documented.
     const p = layer.route.path;
+    // nestjs-pino mounts its request-logging middleware on a wildcard; it is not an endpoint.
+    if (p.includes('*splat')) continue;
     if (p === '/docs' || p.startsWith('/docs/') || p.startsWith('/docs-')) {
       continue;
     }

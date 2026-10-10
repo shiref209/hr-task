@@ -138,4 +138,25 @@ describe('envSchema', () => {
       expect(parse({ LOGIN_RATE_LIMIT_PER_EMAIL: value }).success).toBe(false);
     });
   });
+
+  describe('LOG_LEVEL', () => {
+    it('defaults to info', () => {
+      const result = parse({});
+
+      expect(result.success && result.data.LOG_LEVEL).toBe('info');
+    });
+
+    it.each(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])(
+      'accepts %s',
+      (level) => {
+        const result = parse({ LOG_LEVEL: level });
+
+        expect(result.success && result.data.LOG_LEVEL).toBe(level);
+      },
+    );
+
+    it.each(['verbose', '', 'INFO'])('rejects %j', (level) => {
+      expect(parse({ LOG_LEVEL: level }).success).toBe(false);
+    });
+  });
 });

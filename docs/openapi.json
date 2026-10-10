@@ -2629,6 +2629,24 @@
         ]
       }
     },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "{ status: \"ok\", database: \"up\" }"
+          },
+          "503": {
+            "description": "{ status: \"error\", database: \"down\" }"
+          }
+        },
+        "summary": "Liveness and database check",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
     "/me/tax-table": {
       "get": {
         "operationId": "MyTaxTableController_get",

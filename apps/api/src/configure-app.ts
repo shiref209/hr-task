@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { appConfig } from './common/config';
 import { csrfHeaderMiddleware } from './common/http/csrf-header.middleware';
@@ -15,5 +16,5 @@ export function configureApp(app: INestApplication): void {
   app.getHttpAdapter().registerParserMiddleware('', false);
   app.use(jsonParseErrorMiddleware);
   app.useGlobalFilters(new ErrorDetailsFilter());
-  app.useGlobalInterceptors(new ResponseEnvelopeInterceptor());
+  app.useGlobalInterceptors(new ResponseEnvelopeInterceptor(new Reflector()));
 }

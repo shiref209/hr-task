@@ -12,7 +12,7 @@ Operators can see what the API is doing (JSON logs, one line per request, key au
 - `GET /health` — small controller, no `@nestjs/terminus`; one `SELECT 1` with a short timeout.
 
 ## Behaviour
-**Request log** (pino-http, `info`): `{ level, time, msg: 'request completed', method, path (no query), status, durationMs, userId? }` — `userId` only when the access token was valid. 5xx at `error`, 4xx at `warn`. `/health` and `/docs*` are not request-logged.
+**Request log** (pino-http, `info`): `{ level, time, msg: 'request completed', req: { method, path (no query) }, res: { status }, durationMs, userId? }` — `userId` only when the access token was valid. 5xx at `error`, 4xx at `warn`. `/health` and `/docs*` are not request-logged.
 
 **Auth events** (`info`/`warn`, user id only — never email): `auth.login.succeeded {userId}`, `auth.login.failed` (no identifier at all), `auth.login.rate_limited` (no identifier), `auth.refresh.reuse_detected {userId}` (`warn`), `auth.logout {userId}`.
 

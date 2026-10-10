@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { AuthUser } from '@hr/types';
+import { PinoLogger } from 'nestjs-pino';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { CLOCK, type Clock } from '../common/clock';
 import {
@@ -10,6 +11,7 @@ import {
   type AuthTokens,
 } from './auth-cookies';
 import { InvalidCredentialsError, SessionExpiredError } from './auth.errors';
+import { logAuthEvent } from '../logging/auth-events';
 import { PASSWORD_HASHER, type PasswordHasher } from './password-hasher';
 import {
   REFRESH_TOKEN_REPOSITORY,
@@ -47,6 +49,7 @@ export class AuthService {
     @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasher,
     private readonly jwt: JwtService,
     @Inject(CLOCK) private readonly clock: Clock,
+    private readonly logger: PinoLogger,
   ) {}
 
   async login(email: string, password: string): Promise<Session> {
@@ -56,11 +59,15 @@ export class AuthService {
       password,
       account?.passwordHash ?? (await this.getDummyHash()),
     );
-    if (!account || !matches || !canSignIn(account))
+    if (!account || !matches || !canSignIn(account)) {
+      logAuthEvent(this.logger, 'auth.login.failed', {});
       throw new InvalidCredentialsError();
+    }
     const now = this.clock.now();
     await this.refreshTokens.deleteExpired(account.id, now);
-    return this.startSession(account, now);
+    const session = await this.startSession(account, now);
+    logAuthEvent(this.logger, 'auth.login.succeeded', { userId: account.id });
+    return session;
   }
 
   async refresh(rawToken: string | undefined): Promise<Session> {
@@ -78,7 +85,7 @@ export class AuthService {
     }
     if (stored.revokedAt) {
       // A rotated token is only ever replayed by someone who copied it: end every session of that user.
-      await this.refreshTokens.revokeAllForUser(stored.userId);
+      await this.revokeAllAfterReuse(stored.userId);
       throw new SessionExpiredError();
     }
     const account = await this.users.findById(stored.userId);
@@ -88,7 +95,7 @@ export class AuthService {
     }
     // Losing the compare-and-set means a concurrent refresh already used this token: treat it as reuse.
     if (!(await this.refreshTokens.revoke(stored.id))) {
-      await this.refreshTokens.revokeAllForUser(stored.userId);
+      await this.revokeAllAfterReuse(stored.userId);
       throw new SessionExpiredError();
     }
     return this.startSession(account, stored.sessionStartedAt);
@@ -97,13 +104,20 @@ export class AuthService {
   async logout(rawToken: string | undefined): Promise<void> {
     if (!rawToken) return;
     const stored = await this.refreshTokens.findByHash(sha256(rawToken));
-    if (stored) await this.refreshTokens.delete(stored.id);
+    if (!stored) return;
+    await this.refreshTokens.delete(stored.id);
+    logAuthEvent(this.logger, 'auth.logout', { userId: stored.userId });
   }
 
   async me(userId: string): Promise<AuthUser> {
     const account = await this.users.findById(userId);
     if (!account || !canSignIn(account)) throw new SessionExpiredError();
     return toAuthUser(account);
+  }
+
+  private async revokeAllAfterReuse(userId: string): Promise<void> {
+    await this.refreshTokens.revokeAllForUser(userId);
+    logAuthEvent(this.logger, 'auth.refresh.reuse_detected', { userId });
   }
 
   private getDummyHash(): Promise<string> {

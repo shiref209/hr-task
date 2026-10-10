@@ -94,6 +94,35 @@ const HTTP_KINDS: Record<number, Kind> = {
   429: KINDS.tooManyRequests,
 };
 
+interface PrismaErrorShape {
+  name: 'PrismaClientKnownRequestError';
+  code: string;
+  meta?: { modelName?: string; target?: unknown };
+}
+
+const isPrismaError = (error: unknown): error is PrismaErrorShape =>
+  error instanceof Error &&
+  error.name === 'PrismaClientKnownRequestError' &&
+  'code' in error;
+
+// Prisma messages embed the query arguments (salaries, password hashes), so only their coordinates are logged.
+function describeForLog(exception: unknown): object {
+  if (isPrismaError(exception))
+    return {
+      name: exception.name,
+      code: exception.code,
+      model: exception.meta?.modelName,
+      target: exception.meta?.target,
+    };
+  if (exception instanceof Error)
+    return {
+      name: exception.name,
+      message: exception.message,
+      stack: exception.stack,
+    };
+  return { message: String(exception) };
+}
+
 @Catch()
 export class ErrorDetailsFilter implements ExceptionFilter {
   private readonly logger = new Logger(ErrorDetailsFilter.name);
@@ -145,10 +174,7 @@ export class ErrorDetailsFilter implements ExceptionFilter {
 
   // Logs the original; the client only ever sees the generic detail.
   private unexpected(exception: unknown, status: number): ProblemDetails {
-    this.logger.error(
-      exception instanceof Error ? exception.message : String(exception),
-      exception instanceof Error ? exception.stack : undefined,
-    );
+    this.logger.error(describeForLog(exception));
     return {
       type: 'about:blank',
       title: STATUS_CODES[status] ?? 'Internal Server Error',

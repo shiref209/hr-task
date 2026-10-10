@@ -1,3 +1,4 @@
+import { Logger } from 'nestjs-pino';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
@@ -6,7 +7,10 @@ import { configureApp } from './configure-app';
 import { setupSwagger } from './docs/openapi';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+  app.useLogger(app.get(Logger));
   configureApp(app);
   setupSwagger(app, { enabled: appConfig.SWAGGER_ENABLED });
   app.useStaticAssets(appConfig.UPLOADS_DIR, { prefix: '/uploads' });

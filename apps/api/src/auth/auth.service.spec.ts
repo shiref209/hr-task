@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import { PinoLogger } from 'nestjs-pino';
+import { RecordingLogger } from '../../test/fakes/recording-logger';
 import { FakePasswordHasher } from '../../test/fakes/fake-password-hasher';
 import { InMemoryRefreshTokenRepository } from '../../test/fakes/in-memory-refresh-token-repository';
 import {
@@ -32,6 +34,7 @@ async function setup(users: ReturnType<typeof aUserAccount>[] = []) {
   const userRepo = new InMemoryUserRepository(users);
   const tokens = new InMemoryRefreshTokenRepository();
   const jwt = new JwtService({ secret: SECRET });
+  const logger = new RecordingLogger();
   const moduleRef = await Test.createTestingModule({
     providers: [
       AuthService,
@@ -40,6 +43,7 @@ async function setup(users: ReturnType<typeof aUserAccount>[] = []) {
       { provide: PASSWORD_HASHER, useValue: hasher },
       { provide: JwtService, useValue: jwt },
       { provide: CLOCK, useValue: clock },
+      { provide: PinoLogger, useValue: logger },
     ],
   }).compile();
   return {
@@ -49,6 +53,7 @@ async function setup(users: ReturnType<typeof aUserAccount>[] = []) {
     jwt,
     verify,
     advanceTo,
+    logger,
   };
 }
 
@@ -525,6 +530,90 @@ describe('AuthService', () => {
       });
       expect(user.employee).toMatchObject({ id: account.employee.id });
       expect(JSON.stringify(user)).not.toContain('passwordHash');
+    });
+  });
+
+  describe('auth events', () => {
+    it('logs auth.login.succeeded with the user id only', async () => {
+      const account = aHr();
+      const { service, logger } = await setup([account]);
+
+      await service.login('test@hr.com', PASSWORD);
+
+      const [event] = logger.event('auth.login.succeeded');
+      expect(event.obj).toEqual({ userId: account.id });
+      expect(logger.text()).not.toContain('test@hr.com');
+    });
+
+    it.each([
+      ['a wrong password', 'test@hr.com', 'wrong-password'],
+      ['an unknown email', 'nobody@hr.com', PASSWORD],
+    ])(
+      'logs auth.login.failed for %s without any identifier',
+      async (_, email, password) => {
+        const { service, logger } = await setup([aHr()]);
+
+        await expect(service.login(email, password)).rejects.toBeInstanceOf(
+          InvalidCredentialsError,
+        );
+
+        expect(logger.event('auth.login.failed')).toHaveLength(1);
+        expect(logger.event('auth.login.succeeded')).toHaveLength(0);
+        for (const leak of [
+          email,
+          'test@hr.com',
+          'nobody',
+          password,
+          'userId',
+        ]) {
+          expect(logger.text()).not.toContain(leak);
+        }
+      },
+    );
+
+    it('logs one warn auth.refresh.reuse_detected with the user id when a rotated token is replayed', async () => {
+      const account = aHr();
+      const { service, logger } = await setup([account]);
+      const first = await service.login('test@hr.com', PASSWORD);
+      await service.refresh(first.refreshToken);
+
+      await expect(service.refresh(first.refreshToken)).rejects.toBeInstanceOf(
+        SessionExpiredError,
+      );
+
+      const events = logger.event('auth.refresh.reuse_detected');
+      expect(events).toHaveLength(1);
+      expect(events[0].level).toBe('warn');
+      expect(events[0].obj).toEqual({ userId: account.id });
+    });
+
+    it('does not log reuse for an ordinary rotation', async () => {
+      const { service, logger } = await setup([aHr()]);
+      const first = await service.login('test@hr.com', PASSWORD);
+
+      await service.refresh(first.refreshToken);
+
+      expect(logger.event('auth.refresh.reuse_detected')).toHaveLength(0);
+    });
+
+    it('logs auth.logout with the user id of the revoked session', async () => {
+      const account = aHr();
+      const { service, logger } = await setup([account]);
+      const session = await service.login('test@hr.com', PASSWORD);
+
+      await service.logout(session.refreshToken);
+
+      expect(logger.event('auth.logout')[0].obj).toEqual({
+        userId: account.id,
+      });
+    });
+
+    it('logs nothing for a logout without a known session', async () => {
+      const { service, logger } = await setup([aHr()]);
+
+      await service.logout('never-issued');
+
+      expect(logger.event('auth.logout')).toHaveLength(0);
     });
   });
 });

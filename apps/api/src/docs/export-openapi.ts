@@ -1,5 +1,6 @@
 import './placeholder-env';
 import { Test } from '@nestjs/testing';
+import { LoggerModule } from 'nestjs-pino';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { AuthModule } from '../auth/auth.module';
@@ -11,6 +12,8 @@ import { DEPARTMENT_REPOSITORY } from '../departments/departments.repository';
 import { EmployeesModule } from '../employees/employees.module';
 import { EMPLOYEE_REPOSITORY } from '../employees/employees.repository';
 import { FILE_STORAGE } from '../employees/profile-image/file-storage';
+import { DATABASE_HEALTH } from '../health/database-health';
+import { HealthModule } from '../health/health.module';
 import { PAY_ITEM_REPOSITORY } from '../payroll/pay-items/pay-items.repository';
 import { PayrollModule } from '../payroll/payroll.module';
 import { SOCIAL_INSURANCE_REPOSITORY } from '../payroll/social-insurance/social-insurance.repository';
@@ -34,7 +37,14 @@ function sortKeys(value: unknown): unknown {
 // Routes are only described, never called, so empty stubs keep the export free of a database.
 async function exportDocument(): Promise<void> {
   const moduleRef = await Test.createTestingModule({
-    imports: [AuthModule, EmployeesModule, DepartmentsModule, PayrollModule],
+    imports: [
+      LoggerModule.forRoot({ pinoHttp: { level: 'silent' } }),
+      AuthModule,
+      EmployeesModule,
+      DepartmentsModule,
+      PayrollModule,
+      HealthModule,
+    ],
   })
     .overrideProvider(USER_REPOSITORY)
     .useValue({})
@@ -51,6 +61,8 @@ async function exportDocument(): Promise<void> {
     .overrideProvider(SOCIAL_INSURANCE_REPOSITORY)
     .useValue({})
     .overrideProvider(PAY_ITEM_REPOSITORY)
+    .useValue({})
+    .overrideProvider(DATABASE_HEALTH)
     .useValue({})
     .compile();
   const app = moduleRef.createNestApplication();

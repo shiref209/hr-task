@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { LoggerModule } from 'nestjs-pino';
 import { AuthModule } from '../src/auth/auth.module';
 import type { UserAccount } from '../src/auth/users.repository';
 import { CLOCK } from '../src/common/clock';
@@ -40,7 +41,13 @@ export async function createTestApp(
 ): Promise<{ app: INestApplication; moduleRef: TestingModule }> {
   const moduleRef = await withAuthFakes(
     Test.createTestingModule({
-      imports: [AuthModule, EmployeesModule, DepartmentsModule, PayrollModule],
+      imports: [
+        LoggerModule.forRoot({ pinoHttp: { level: 'silent' } }),
+        AuthModule,
+        EmployeesModule,
+        DepartmentsModule,
+        PayrollModule,
+      ],
     }),
     fakes.users,
   )

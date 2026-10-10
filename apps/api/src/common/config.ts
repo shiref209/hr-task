@@ -10,6 +10,9 @@ export const envSchema = z
       .refine((value) => !value.startsWith('replace-with'), 'must be changed'),
     // Origin allowed by CORS (the web dev server)
     WEB_ORIGIN: z.url().default('http://localhost:5173'),
+    LOG_LEVEL: z
+      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
+      .default('info'),
     UPLOADS_DIR: z.string().min(1).default('uploads'),
     SWAGGER_ENABLED: z
       .enum(['true', 'false'])
@@ -27,6 +30,8 @@ export const envSchema = z
     ...env,
     SWAGGER_ENABLED: env.SWAGGER_ENABLED ?? env.NODE_ENV !== 'production',
   }));
+
+export type AppConfig = z.infer<typeof envSchema>;
 
 // Parsed at import time so an invalid environment fails the process at startup.
 export const appConfig = envSchema.parse(process.env);

@@ -5,6 +5,7 @@ process.env.LOGIN_RATE_LIMIT_PER_EMAIL = '1000';
 
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { LoggerModule } from 'nestjs-pino';
 import { AuthModule } from '../src/auth/auth.module';
 import { ScryptPasswordHasher } from '../src/auth/scrypt-password-hasher';
 import type { UserAccount } from '../src/auth/users.repository';
@@ -40,7 +41,12 @@ describe('POST /auth/login rate limit (e2e)', () => {
   });
   beforeEach(async () => {
     const moduleRef = await withAuthFakes(
-      Test.createTestingModule({ imports: [AuthModule] }),
+      Test.createTestingModule({
+        imports: [
+          LoggerModule.forRoot({ pinoHttp: { level: 'silent' } }),
+          AuthModule,
+        ],
+      }),
       [hr, other],
     ).compile();
     app = moduleRef.createNestApplication();

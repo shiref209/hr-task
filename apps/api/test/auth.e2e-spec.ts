@@ -5,6 +5,7 @@ process.env.LOGIN_RATE_LIMIT_PER_IP_PER_MINUTE = '1000';
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import { LoggerModule } from 'nestjs-pino';
 import request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
 import { ScryptPasswordHasher } from '../src/auth/scrypt-password-hasher';
@@ -74,7 +75,12 @@ describe('Auth (e2e)', () => {
       employee: { status: 'INACTIVE' },
     });
     const moduleRef = await withAuthFakes(
-      Test.createTestingModule({ imports: [AuthModule] }),
+      Test.createTestingModule({
+        imports: [
+          LoggerModule.forRoot({ pinoHttp: { level: 'silent' } }),
+          AuthModule,
+        ],
+      }),
       [hr, employee, inactive, fading],
     )
       .overrideProvider(CLOCK)

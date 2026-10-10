@@ -303,4 +303,67 @@ describe('ErrorDetailsFilter', () => {
     expect(run(new ConflictError('x')).body.errors).toBeUndefined();
     expect(run(new Error('x')).body.errors).toBeUndefined();
   });
+
+  describe('error log content', () => {
+    // Every argument the filter handed to the Nest Logger, as one string.
+    const loggedText = () =>
+      JSON.stringify(
+        [
+          ...(loggerError.mock.calls as unknown[][]),
+          ...(staticLoggerError.mock.calls as unknown[][]),
+        ].flat(),
+      );
+
+    class PrismaClientKnownRequestError extends Error {
+      readonly code = 'P2002';
+      readonly clientVersion = '6.19.3';
+      readonly meta = { modelName: 'Employee', target: ['email'] };
+      constructor() {
+        super(
+          'Invalid `prisma.employee.create()` invocation: data: { baseSalary: "9000.00", passwordHash: "$scrypt$abc" }',
+        );
+        this.name = 'PrismaClientKnownRequestError';
+      }
+    }
+
+    it('logs only code, model and target for a Prisma error, never its message or stack', () => {
+      run(new PrismaClientKnownRequestError());
+
+      const logged = loggedText();
+      expect(logged).toContain('P2002');
+      expect(logged).toContain('Employee');
+      expect(logged).toContain('email');
+      expect(logged).not.toContain('baseSalary');
+      expect(logged).not.toContain('passwordHash');
+      expect(logged).not.toContain('9000.00');
+    });
+
+    it('still answers a Prisma error with the generic 500', () => {
+      const out = run(new PrismaClientKnownRequestError());
+
+      expect(out.status).toBe(500);
+      expect(out.body).toMatchObject({
+        type: 'about:blank',
+        title: STATUS_CODES[500],
+        status: 500,
+        detail: 'An unexpected error occurred.',
+      });
+      expect(JSON.stringify(out.body)).not.toContain('baseSalary');
+    });
+
+    it('logs name, message and stack for an unexpected non-Prisma error', () => {
+      class WeirdError extends Error {}
+      const err = new WeirdError('kaboom');
+      err.name = 'WeirdError';
+
+      const out = run(err);
+
+      const logged = loggedText();
+      expect(logged).toContain('WeirdError');
+      expect(logged).toContain('kaboom');
+      expect(logged).toContain(err.stack?.split('\n')[1].trim());
+      expect(out.status).toBe(500);
+      expect(out.body.detail).toBe('An unexpected error occurred.');
+    });
+  });
 });
